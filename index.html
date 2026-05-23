@@ -289,9 +289,12 @@
 
   <!-- Histórico -->
   <div class="section" style="margin-bottom:1.5rem;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;flex-wrap:wrap;gap:8px;">
       <div class="section-label" style="margin-bottom:0;flex:1;">Histórico de Clears</div>
-      <button class="btn btn-ghost btn-sm" onclick="clearHistory()" style="margin-left:12px;">✕ Limpar tudo</button>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <div id="history-dungeon-tabs" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+        <button class="btn btn-ghost btn-sm" onclick="clearHistory()">✕ Limpar tudo</button>
+      </div>
     </div>
     <div id="history-totals-bar"></div>
     <div class="history-list" id="history-list"><div class="empty-state">Nenhuma run registrada ainda.</div></div>
@@ -544,11 +547,29 @@ function renderGroups() {
 }
 
 // ── render history ────────────────────────────────────────────
+let historyDungeonFilter = ''; // '' = todas
+
+function renderHistoryFilter() {
+  const el = document.getElementById('history-dungeon-tabs');
+  if(!el) return;
+  el.innerHTML =
+    `<button class="dungeon-tab${historyDungeonFilter===''?' active':''}" onclick="setHistoryFilter('')">Todas</button>` +
+    dungeons.map(d =>
+      `<button class="dungeon-tab${historyDungeonFilter===d.id?' active':''}" onclick="setHistoryFilter('${d.id}')">${esc(d.name)}</button>`
+    ).join('');
+}
+
+window.setHistoryFilter = id => {
+  historyDungeonFilter = id;
+  renderHistoryFilter();
+  renderHistory();
+};
+
 function renderHistory() {
   const listEl   = document.getElementById('history-list');
   const totalsEl = document.getElementById('history-totals-bar');
-  const filtered = activeDungeonId
-    ? history.filter(h => h.dungeon_id === activeDungeonId)
+  const filtered = historyDungeonFilter
+    ? history.filter(h => h.dungeon_id === historyDungeonFilter)
     : history;
 
   if(!filtered.length) {
@@ -587,7 +608,7 @@ function renderHistory() {
   }).join('');
 }
 
-function render() { renderRoster(); renderGroups(); renderHistory(); }
+function render() { renderRoster(); renderGroups(); renderHistoryFilter(); renderHistory(); }
 
 // ── fetch ─────────────────────────────────────────────────────
 async function fetchAll() {
