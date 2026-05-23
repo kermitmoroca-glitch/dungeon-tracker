@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rastreador de Dungeons</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0d0f14; --bg2: #13161e; --bg3: #1a1e29;
+    --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13);
+    --text: #e8e4d8; --text2: #8a8578; --text3: #4a4840;
+    --gold: #c9a84c; --gold2: #f0cf7a; --gold-bg: rgba(201,168,76,0.1);
+    --red: #c0392b; --red-bg: rgba(192,57,43,0.12);
+    --green: #27ae60; --green-bg: rgba(39,174,96,0.12);
+    --purple: #8e44ad; --purple-bg: rgba(142,68,173,0.12); --purple2: #d7bde2;
+    --radius: 8px; --radius-lg: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Barlow', sans-serif; min-height: 100vh; }
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,168,76,0.06) 0%, transparent 60%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='1' height='1' fill='rgba(255,255,255,0.015)'/%3E%3C/svg%3E");
+  }
+  .app { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  header { text-align: center; padding: 2rem 0 1.75rem; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
+  header h1 { font-family: 'Cinzel', serif; font-size: clamp(1.6rem,3vw,2.2rem); font-weight: 700; color: var(--gold2); letter-spacing: 0.08em; text-shadow: 0 0 40px rgba(201,168,76,0.3); margin-bottom: 0.4rem; }
+  header p { font-size: 13px; color: var(--text2); letter-spacing: 0.05em; text-transform: uppercase; }
+
+  /* ── two-column main layout ── */
+  .main-columns {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 2rem;
+    align-items: start;
+    margin-bottom: 2rem;
+  }
+  .col-left  { display: flex; flex-direction: column; gap: 1.25rem; position: sticky; top: 1.5rem; border-right: 2px solid rgba(201,168,76,0.18); padding-right: 2rem; }
+  .col-right { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
+  .sync-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--text3); vertical-align: middle; }
+  .sync-dot.online { background: #2ecc71; box-shadow: 0 0 6px rgba(46,204,113,0.6); }
+  .sync-dot.syncing { background: var(--gold); box-shadow: 0 0 6px rgba(201,168,76,0.6); animation: pulse 1s infinite; }
+  .sync-dot.error { background: #e74c3c; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .section { margin-bottom: 0; }
+  .section-label { font-family: 'Cinzel', serif; font-size: 11px; font-weight: 600; color: var(--gold); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 8px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .card { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius-lg); padding: 1.25rem; }
+  .roster-card { background: var(--bg2); border: 1px solid rgba(201,168,76,0.15); border-radius: var(--radius-lg); padding: 0.5rem 0.75rem; }
+  .form-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  input[type="text"], input[type="number"], select {
+    background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius);
+    color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14px;
+    height: 38px; padding: 0 12px; outline: none; transition: border-color 0.2s;
+  }
+  input[type="text"]:focus, input[type="number"]:focus, select:focus { border-color: var(--gold); }
+  input::placeholder { color: var(--text3); }
+  select option { background: var(--bg3); }
+  #inp-name { width: 100%; } #inp-class { width: 100%; } #inp-clears { width: 110px; }
+  .btn { height: 38px; padding: 0 16px; border-radius: var(--radius); border: 1px solid var(--border2); background: transparent; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; white-space: nowrap; }
+  .btn:hover { background: var(--bg3); }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-gold { background: var(--gold-bg); border-color: var(--gold); color: var(--gold2); }
+  .btn-gold:hover { background: rgba(201,168,76,0.18); }
+  .btn-red { background: var(--red-bg); border-color: var(--red); color: #e74c3c; }
+  .btn-red:hover { background: rgba(192,57,43,0.2); }
+  .btn-green { background: var(--green-bg); border-color: var(--green); color: #2ecc71; width: 100%; justify-content: center; height: 36px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; margin-top: 9px; }
+  .btn-green:hover { background: rgba(39,174,96,0.2); }
+  .btn-ghost { background: rgba(255,255,255,0.03); border-color: var(--border2); color: var(--text2); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+  .btn-sm { height: 30px; padding: 0 10px; font-size: 12px; }
+  .empty-state { color: var(--text3); font-size: 13px; text-align: center; padding: 1.5rem 0; }
+  .roster-item { display: flex; align-items: center; gap: 10px; padding: 11px 10px; border-bottom: 1px solid var(--border); }
+  .roster-item:last-child { border-bottom: none; }
+  .roster-item:hover { background: rgba(255,255,255,0.02); border-radius: var(--radius); }
+  .char-name { font-weight: 600; font-size: 14px; flex: 1; min-width: 80px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .char-class { font-size: 11px; color: var(--text2); white-space: nowrap; min-width: 70px; text-align: left; }
+  .badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; border: 1px solid; white-space: nowrap; letter-spacing: 0.03em; }
+  .badge-clears { background: rgba(255,255,255,0.04); border-color: var(--border2); color: var(--text2); }
+  .badge-next { font-size: 10px; color: var(--text3); border: none; padding: 0; background: none; }
+  .groups-list { display: flex; flex-direction: column; gap: 14px; }
+  .group-card { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.1rem; }
+  .group-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
+  .group-name { font-family: 'Cinzel', serif; font-size: 13px; color: var(--gold); letter-spacing: 0.06em; }
+  .members-area { min-height: 40px; background: rgba(0,0,0,0.2); border: 1px dashed var(--border2); border-radius: var(--radius); padding: 7px 10px; display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 9px; align-items: center; }
+  .members-area.is-empty::after { content: 'Nenhum personagem no grupo'; font-size: 12px; color: var(--text3); }
+  .member-pill { display: inline-flex; align-items: center; gap: 5px; background: var(--bg2); border: 1px solid var(--border2); border-radius: 20px; padding: 3px 9px; font-size: 12px; }
+  .pill-remove { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 15px; line-height: 1; padding: 0; transition: color 0.15s; }
+  .pill-remove:hover { color: #e74c3c; }
+  .group-add-row { display: flex; gap: 6px; align-items: center; }
+  .group-add-row select { flex: 1; height: 34px; font-size: 13px; }
+  .loot-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: rgba(0,0,0,0.15); border-radius: var(--radius); padding: 7px 10px; margin-top: 8px; border: 1px solid var(--border); }
+  .loot-label { font-size: 12px; color: var(--text2); white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+  .loot-input { width: 70px !important; height: 32px !important; font-size: 14px; text-align: center; padding: 0 8px !important; }
+  .history-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 10px; }
+  .history-entry { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.1rem; }
+  .history-entry-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .history-meta { display: flex; flex-direction: column; gap: 3px; }
+  .history-run-label { font-family: 'Cinzel', serif; font-size: 13px; color: var(--gold); letter-spacing: 0.05em; }
+  .history-time { font-size: 11px; color: var(--text3); }
+  .loot-summary { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .loot-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; border: 1px solid; white-space: nowrap; }
+  .loot-poder { background: rgba(201,168,76,0.1); border-color: var(--gold); color: var(--gold2); }
+  .loot-gema  { background: var(--purple-bg); border-color: var(--purple); color: var(--purple2); }
+  .history-members { display: flex; flex-wrap: wrap; gap: 5px; }
+  .history-member-pill { font-size: 11px; padding: 2px 8px; border-radius: 20px; background: rgba(255,255,255,0.04); border: 1px solid var(--border2); color: var(--text2); }
+  .history-totals { display: flex; gap: 16px; flex-wrap: wrap; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 1rem; align-items: center; }
+  .totals-item { display: flex; flex-direction: column; gap: 2px; }
+  .totals-label { font-size: 12px; color: var(--text2); }
+  .totals-val { font-size: 15px; font-weight: 600; color: var(--gold2); }
+  .totals-divider { width: 1px; height: 28px; background: var(--border2); }
+  #toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(10px); background: var(--bg2); border: 1px solid var(--gold); color: var(--gold2); font-size: 13px; padding: 10px 20px; border-radius: 30px; opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.3s; font-family: 'Barlow', sans-serif; letter-spacing: 0.04em; z-index: 999; white-space: nowrap; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #loading-screen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; gap: 16px; }
+  #loading-screen h2 { font-family: 'Cinzel', serif; color: var(--gold2); font-size: 1.4rem; letter-spacing: 0.1em; }
+  #loading-screen p { color: var(--text2); font-size: 13px; }
+  .spinner { width: 36px; height: 36px; border: 2px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── tela de login ── */
+  #login-screen {
+    position: fixed; inset: 0; background: var(--bg); z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,168,76,0.08) 0%, transparent 60%);
+  }
+  #login-box {
+    background: var(--bg2); border: 1px solid rgba(201,168,76,0.25);
+    border-radius: var(--radius-lg); padding: 2.5rem 2rem;
+    width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 14px;
+    box-shadow: 0 0 60px rgba(0,0,0,0.6), 0 0 30px rgba(201,168,76,0.05);
+  }
+  #login-title {
+    font-family: 'Cinzel', serif; font-size: 1.4rem; font-weight: 700;
+    color: var(--gold2); text-align: center; letter-spacing: 0.1em;
+    text-shadow: 0 0 30px rgba(201,168,76,0.3);
+  }
+  #login-subtitle { font-size: 12px; color: var(--text3); text-align: center; letter-spacing: 0.05em; }
+  #login-box input {
+    width: 100%; height: 42px; background: var(--bg3);
+    border: 1px solid var(--border2); border-radius: var(--radius);
+    color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14px;
+    padding: 0 14px; outline: none; transition: border-color 0.2s;
+  }
+  #login-box input:focus { border-color: var(--gold); }
+  #login-btn {
+    height: 42px; background: var(--gold-bg); border: 1px solid var(--gold);
+    border-radius: var(--radius); color: var(--gold2); font-family: 'Barlow', sans-serif;
+    font-size: 14px; font-weight: 600; letter-spacing: 0.06em; cursor: pointer;
+    transition: all 0.15s; margin-top: 4px;
+  }
+  #login-btn:hover { background: rgba(201,168,76,0.18); }
+  #login-btn:active { transform: scale(0.97); }
+  #login-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  #login-error {
+    background: var(--red-bg); border: 1px solid var(--red); border-radius: var(--radius);
+    color: #e74c3c; font-size: 13px; padding: 10px 14px; text-align: center;
+  }
+  #logout-btn {
+    font-size: 12px; color: var(--text3); background: none; border: none;
+    cursor: pointer; padding: 0; transition: color 0.15s; font-family: 'Barlow', sans-serif;
+  }
+  #logout-btn:hover { color: #e74c3c; }
+  .diff-1  { background: rgba(39,174,96,0.1);   border-color: #27ae60; color: #2ecc71; }
+  .diff-2  { background: rgba(52,152,219,0.1);  border-color: #2980b9; color: #5dade2; }
+  .diff-3  { background: rgba(241,196,15,0.1);  border-color: #d4ac0d; color: #f4d03f; }
+  .diff-4  { background: rgba(230,126,34,0.1);  border-color: #ca6f1e; color: #f39c12; }
+  .diff-5  { background: rgba(231,76,60,0.1);   border-color: #c0392b; color: #e74c3c; }
+  .diff-6  { background: rgba(192,57,43,0.12);  border-color: #96281b; color: #cd6155; }
+  .diff-7  { background: rgba(155,89,182,0.12); border-color: #7d3c98; color: #af7ac5; }
+  .diff-8  { background: rgba(142,68,173,0.15); border-color: #6c3483; color: #d7bde2; }
+  .diff-9  { background: rgba(201,168,76,0.12); border-color: #9a7d0a; color: #f0cf7a; }
+  .diff-10 { background: rgba(240,207,122,0.18);border-color: #c9a84c; color: #fff3b8; text-shadow: 0 0 8px rgba(240,207,122,0.5); }
+  /* ── drag & drop ── */
+  .roster-item[draggable="true"] { cursor: grab; transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s; }
+  .roster-item[draggable="true"]:hover { background: rgba(201,168,76,0.04); border-radius: var(--radius); }
+  .roster-item.dragging { opacity: 0.4; transform: scale(0.97); }
+  .roster-item .drag-handle { color: var(--text3); font-size: 15px; cursor: grab; padding: 0 4px; user-select: none; flex-shrink: 0; }
+  .roster-item .drag-handle:active { cursor: grabbing; }
+
+  .members-area.drag-over {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.08);
+    box-shadow: 0 0 0 2px rgba(201,168,76,0.2);
+  }
+  .members-area { transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+
+  .drag-hint { font-size: 11px; color: var(--text3); margin-top: 6px; text-align: center; letter-spacing: 0.04em; }
+
+  @media (max-width: 900px) {
+    .main-columns { grid-template-columns: 1fr; }
+    .col-left { position: static; border-right: none; padding-right: 0; }
+  }
+  @media (max-width:600px) {
+    #inp-name,#inp-class,#inp-clears { width:100%; }
+    .form-row { flex-direction:column; align-items:stretch; }
+    .btn-gold { width:100%; justify-content:center; }
+    .loot-row { flex-direction:column; align-items:flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Tela de login -->
+<div id="login-screen" style="display:none;">
+  <div id="login-box">
+    <div id="login-title">⚔ Dungeon Tracker</div>
+    <div id="login-subtitle">Acesso restrito — faça login para continuar</div>
+    <div id="login-error" style="display:none;"></div>
+    <input type="text" id="login-email" placeholder="Usuário" autocomplete="username" />
+    <input type="password" id="login-password" placeholder="Senha" autocomplete="current-password" />
+    <button id="login-btn" onclick="doLogin()">Entrar</button>
+  </div>
+</div>
+
+<!-- Tela de carregamento -->
+<div id="loading-screen">
+  <div class="spinner"></div>
+  <h2>⚔ Dungeon Tracker</h2>
+  <p>Conectando ao Supabase...</p>
+</div>
+
+<div class="app" id="main-app" style="display:none;">
+  <header>
+    <h1>⚔ Rastreador de Dungeons</h1>
+    <p>
+      <span class="sync-dot" id="sync-dot"></span>
+      <span id="sync-label">Conectando...</span>
+      &nbsp;·&nbsp; Ragnarok Online — Gerenciador de Grupos &amp; Instâncias
+      &nbsp;·&nbsp; <button id="logout-btn" onclick="doLogout()">Sair</button>
+    </p>
+  </header>
+
+  <!-- Layout em duas colunas -->
+  <div class="main-columns">
+
+    <!-- ESQUERDA: Adicionar Personagem + Elenco -->
+    <div class="col-left">
+
+      <!-- Adicionar Personagem -->
+      <div class="section">
+        <div class="section-label">Adicionar Personagem</div>
+        <div class="card">
+          <div class="form-row" style="flex-direction:column;align-items:stretch;gap:8px;">
+            <input type="text" id="inp-name" placeholder="Nome do personagem" />
+            <select id="inp-class">
+              <option value="">Selecionar classe...</option>
+              <option value="Rune Knight">Cavaleiro Rúnico</option><option value="Royal Guard">Guardião Real</option><option value="Warlock">Arcano</option>
+              <option value="Sorcerer">Feiticeiro</option><option value="Ranger">Caçador</option><option value="Minstrel">Bardo</option>
+              <option value="Wanderer">Musa</option><option value="Arch Bishop">Arcebispo</option><option value="Sura">Mestre</option>
+              <option value="Mechanic">Mecânico</option><option value="Genetic">Criador</option><option value="Guillotine Cross">Algoz</option>
+              <option value="Shadow Chaser">Arruaceiro</option>
+            </select>
+            <div style="display:flex;gap:8px;">
+              <input type="number" id="inp-clears" placeholder="Clears atuais" min="0" style="flex:1;" />
+              <button class="btn btn-gold" onclick="addCharacter()">＋ Adicionar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Elenco -->
+      <div class="section">
+        <div class="section-label">Elenco</div>
+        <div class="roster-card"><div id="roster-list"><div class="empty-state">Nenhum personagem ainda.</div></div></div>
+        <div class="drag-hint" id="drag-hint" style="display:none;">✦ Arraste personagens para um grupo →</div>
+      </div>
+
+    </div><!-- /col-left -->
+
+    <!-- DIREITA: Grupos -->
+    <div class="col-right">
+      <div class="section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+          <div class="section-label" style="margin-bottom:0;flex:1;">Grupos</div>
+          <button class="btn btn-gold btn-sm" onclick="addGroup()" style="margin-left:12px;">＋ Novo Grupo</button>
+        </div>
+        <div class="groups-list" id="groups-list"><div class="empty-state">Nenhum grupo ainda.</div></div>
+      </div>
+    </div><!-- /col-right -->
+
+  </div><!-- /main-columns -->
+
+  <!-- Histórico — largura total abaixo -->
+  <div class="section" style="margin-bottom:1.5rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+      <div class="section-label" style="margin-bottom:0;flex:1;">Histórico de Clears</div>
+      <button class="btn btn-ghost btn-sm" onclick="clearHistory()" style="margin-left:12px;">✕ Limpar tudo</button>
+    </div>
+    <div id="history-totals-bar"></div>
+    <div class="history-list" id="history-list"><div class="empty-state">Nenhuma run registrada ainda.</div></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ══════════════════════════════════════════════════════════════
+//  ⚙️  SUPABASE CONFIG
+// ══════════════════════════════════════════════════════════════
+const SUPABASE_URL  = 'https://ybleefftuygpxknismwp.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlibGVlZmZ0dXlncHhrbmlzbXdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0OTc0NzcsImV4cCI6MjA5NTA3MzQ3N30.2F7S7sJluekiEmeaxLG642bwAUluaTS70tZpEvSlAKI';
+// ══════════════════════════════════════════════════════════════
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ── espelhos locais (atualizados pelos listeners) ─────────────
+let characters = [];
+let groups     = [];
+let history    = [];
+
+// ── helpers ──────────────────────────────────────────────────
+const DIFF = [
+  {min:0,  max:4,  label:'Nv 1', cls:'diff-1'},
+  {min:5,  max:10, label:'Nv 2', cls:'diff-2'},
+  {min:11, max:17, label:'Nv 3', cls:'diff-3'},
+  {min:18, max:25, label:'Nv 4', cls:'diff-4'},
+  {min:26, max:34, label:'Nv 5', cls:'diff-5'},
+  {min:35, max:44, label:'Nv 6', cls:'diff-6'},
+  {min:45, max:59, label:'Nv 7', cls:'diff-7'},
+  {min:60, max:79, label:'Nv 8', cls:'diff-8'},
+  {min:80, max:99, label:'Nv 9', cls:'diff-9'},
+  {min:100,max:Infinity,label:'Nv 10',cls:'diff-10'}
+];
+const THRESHOLDS = [5,11,18,26,35,45,60,80,100];
+const getDiff = c => DIFF.find(d => c >= d.min && c <= d.max) || DIFF[0];
+const getNext = c => { const n = THRESHOLDS.find(t => t > c); return n ? `${n-c} para o próximo nível` : 'Nível máximo atingido'; };
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmtDate = ts => new Date(ts).toLocaleString('pt-BR');
+
+// ── helpers de cooldown (reset às 4h da manhã) ────────────────
+// "dia de jogo" = hora real menos 4h, para que 00h~03h59 pertençam ao dia anterior
+const gameDay = (date = new Date()) => {
+  const d = new Date(date);
+  d.setHours(d.getHours() - 4); // recua 4h para cruzar o reset
+  d.setHours(0, 0, 0, 0);       // zera para comparação apenas por data
+  return d;
+};
+const cooldownUntil = c => {
+  if(!c.last_cleared_at) return null;
+  // last_cleared_at já é salvo como data de jogo (string "YYYY-MM-DD")
+  // não aplicar gameDay() de novo, só parsear como data local
+  const parts = c.last_cleared_at.slice(0, 10).split('-');
+  const cleared = new Date(parts[0], parts[1] - 1, parts[2]); // data local, sem fuso
+  cleared.setDate(cleared.getDate() + 3);
+  return cleared;
+};
+const isOnCooldown = c => {
+  const until = cooldownUntil(c);
+  if(!until) return false;
+  return gameDay() < until;
+};
+const fmtCooldown = c => {
+  const until = cooldownUntil(c);
+  if(!until) return '';
+  const today = gameDay();
+  if(today >= until) return '';
+  const diff = Math.round((until - today) / 86400000);
+  const d = until.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' });
+  return `Disponível ${d} (${diff}d)`;
+};
+
+// ── cores & ícones de classe ──────────────────────────────────
+const BROWIKI = 'https://browiki.org/wiki/Special:FilePath/';
+const CLASS_META = {
+  'Rune Knight':      { color: '#e05252', img: `${BROWIKI}Lordespartyicn.png` },
+  'Royal Guard':      { color: '#e8a44a', img: `${BROWIKI}Paladinospartyicn.png` },
+  'Warlock':          { color: '#9b6fe0', img: `${BROWIKI}Arcanospartyicn.png` },
+  'Sorcerer':         { color: '#6fa8e0', img: `${BROWIKI}Feiticeirospartyicn.png` },
+  'Ranger':           { color: '#5fbf6e', img: `${BROWIKI}Cacadorespartyicn.png` },
+  'Minstrel':         { color: '#e0c44a', img: `${BROWIKI}Bardospartyicn.png` },
+  'Wanderer':         { color: '#d47fd4', img: `${BROWIKI}Musaspartyicn.png` },
+  'Arch Bishop':      { color: '#f0e070', img: `${BROWIKI}Arcebispospartyicn.png` },
+  'Sura':             { color: '#e07a40', img: `${BROWIKI}Mestrespartyicn.png` },
+  'Mechanic':         { color: '#8ab8d4', img: `${BROWIKI}Mestres-Ferreirospartyicn.png` },
+  'Genetic':          { color: '#7ac97a', img: `${BROWIKI}Criadorespartyicn.png` },
+  'Guillotine Cross': { color: '#c0c0c0', img: `${BROWIKI}Algozespartyicn.png` },
+  'Shadow Chaser':    { color: '#b07ab0', img: `${BROWIKI}Arruaceirospartyicn.png` },
+};
+const CLASS_PT = {
+  'Rune Knight': 'Cavaleiro Rúnico', 'Royal Guard': 'Guardião Real', 'Warlock': 'Arcano',
+  'Sorcerer': 'Feiticeiro', 'Ranger': 'Caçador', 'Minstrel': 'Bardo',
+  'Wanderer': 'Musa', 'Arch Bishop': 'Arcebispo', 'Sura': 'Mestre',
+  'Mechanic': 'Mecânico', 'Genetic': 'Criador', 'Guillotine Cross': 'Algoz',
+  'Shadow Chaser': 'Arruaceiro',
+};
+const clsPT = cls => CLASS_PT[cls] || cls;
+const clsMeta = cls => CLASS_META[cls] || { color: 'var(--text)', img: null };
+const clsIcon = (cls, size=16) => {
+  const m = clsMeta(cls);
+  if (m.img) {
+    return `<img src="${m.img}" width="${size}" height="${size}" alt="${cls}" title="${cls}" style="display:inline-block;flex-shrink:0;image-rendering:pixelated;vertical-align:middle;" onerror="this.style.display='none'">`;
+  }
+  return `<span style="display:inline-flex;width:${size}px;height:${size}px;flex-shrink:0;"></span>`;
+};
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2600);
+}
+function setSyncStatus(state) {
+  const dot   = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  if(state === 'online')  { dot.className='sync-dot online';  label.textContent='Online — alterações sincronizam em tempo real'; }
+  if(state === 'syncing') { dot.className='sync-dot syncing'; label.textContent='Sincronizando...'; }
+  if(state === 'error')   { dot.className='sync-dot error';   label.textContent='Erro de conexão'; }
+}
+
+// ── estado de drag ────────────────────────────────────────────
+let dragCharId = null;
+
+// ── render ────────────────────────────────────────────────────
+function renderRoster() {
+  const el = document.getElementById('roster-list');
+  const hint = document.getElementById('drag-hint');
+  el.style.display = '';
+  el.style.gridTemplateColumns = '';
+  el.style.gap = '';
+  if(!characters.length) {
+    el.innerHTML='<div class="empty-state">Nenhum personagem ainda. Adicione um acima.</div>';
+    if(hint) hint.style.display = 'none';
+    return;
+  }
+  el.innerHTML = characters
+    .slice().sort((a,b)=>a.name.localeCompare(b.name))
+    .map(c => {
+      const d = getDiff(c.clears), nx = getNext(c.clears);
+      const { color } = clsMeta(c.cls);
+      const onCD = isOnCooldown(c);
+      const cdLabel = fmtCooldown(c);
+      return `<div class="roster-item" draggable="${!onCD}" data-char-id="${c.id}"
+          ondragstart="window._onRosterDragStart(event,'${c.id}')"
+          ondragend="window._onRosterDragEnd(event)"
+          style="${onCD ? 'opacity:0.5;' : ''}">
+        <span class="drag-handle" title="${onCD ? 'Em cooldown' : 'Arraste para um grupo'}" style="${onCD ? 'cursor:not-allowed;' : ''}">⠿</span>
+        ${clsIcon(c.cls, 18)}
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;">
+          <span class="char-name" style="color:${color};">${esc(c.name)}</span>
+          <span class="char-class">${clsPT(c.cls)}</span>
+          ${onCD ? `<span style="color:#e74c3c;font-size:10px;">⏳ ${cdLabel}</span>` : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
+          <span class="badge badge-clears">${c.clears} clears</span>
+          <span class="badge ${d.cls}">${d.label}</span>
+        </div>
+        <button class="btn btn-red btn-sm" onclick="window._removeChar('${c.id}')">✕</button>
+      </div>`;
+    }).join('');
+  if(hint) hint.style.display = 'block';
+}
+
+function renderGroups() {
+  const wrap = document.getElementById('groups-list');
+  if(!groups.length) { wrap.innerHTML='<div class="empty-state">Nenhum grupo ainda. Clique em "Novo Grupo" para começar.</div>'; return; }
+  const assignedIds = new Set(groups.flatMap(g => g.members||[]));
+  const unassigned  = characters.filter(c => !assignedIds.has(c.id));
+  const available   = unassigned.filter(c => !isOnCooldown(c));
+  const onCooldown  = unassigned.filter(c => isOnCooldown(c));
+
+  wrap.innerHTML = groups.map(g => {
+    const members = (g.members||[]).map(mid => characters.find(c=>c.id===mid)).filter(Boolean);
+    const membersHtml = `<div class="members-area${!members.length ? ' is-empty' : ''}"
+        data-group-id="${g.id}"
+        ondragover="window._onGroupDragOver(event)"
+        ondragleave="window._onGroupDragLeave(event)"
+        ondrop="window._onGroupDrop(event,'${g.id}')">${
+      members.map(c => {
+        const d = getDiff(c.clears);
+        return `<span class="member-pill">
+          ${clsIcon(c.cls, 16)}
+          <span style="color:${clsMeta(c.cls).color};font-weight:600;">${esc(c.name)}</span>
+          <span class="badge ${d.cls}" style="font-size:10px;padding:2px 6px;">${d.label}</span>
+          <span class="badge badge-clears" style="font-size:10px;padding:2px 6px;">${c.clears}</span>
+          <button class="pill-remove" onclick="window._removeFromGroup('${g.id}','${c.id}')">×</button>
+        </span>`;
+      }).join('')
+    }</div>`;
+
+    const cooldownOptGroup = onCooldown.length
+      ? `<optgroup label="⏳ Em Cooldown">
+          ${onCooldown.map(c=>`<option value="" disabled>${esc(c.name)} — ${fmtCooldown(c)}</option>`).join('')}
+        </optgroup>`
+      : '';
+
+    const addRow = !unassigned.length
+      ? `<span style="font-size:12px;color:var(--text3);">Todos os personagens estão em grupos</span>`
+      : `<select id="sel-${g.id}">
+          <option value="">Adicionar personagem...</option>
+          ${available.map(c=>`<option value="${c.id}">${esc(c.name)} — ${clsPT(c.cls)}</option>`).join('')}
+          ${cooldownOptGroup}
+        </select>
+        <button class="btn btn-gold btn-sm" onclick="window._doAddToGroup('${g.id}')">＋ Adicionar</button>`;
+
+    return `<div class="group-card">
+      <div class="group-card-header">
+        <span class="group-name">⚔ ${esc(g.name)}</span>
+        <button class="btn btn-red btn-sm" onclick="window._removeGroup('${g.id}')">✕ Remover</button>
+      </div>
+      ${membersHtml}
+      <div class="group-add-row">${addRow}</div>
+      <div class="loot-row">
+        <span class="loot-label">🔶 Poder Temporal</span>
+        <input type="number" class="loot-input" id="poder-${g.id}" placeholder="0" min="0" />
+        <span class="loot-label" style="margin-left:8px;">💎 Gema Temporal</span>
+        <input type="number" class="loot-input" id="gema-${g.id}" placeholder="0" min="0" />
+      </div>
+      <button class="btn btn-green" onclick="window._instanceCleared('${g.id}')">✔ Instância Concluída — Registrar run &amp; +1 para todos os membros</button>
+    </div>`;
+  }).join('');
+}
+
+function renderHistory() {
+  const listEl   = document.getElementById('history-list');
+  const totalsEl = document.getElementById('history-totals-bar');
+  if(!history.length) {
+    listEl.innerHTML = '<div class="empty-state">Nenhuma run registrada ainda.</div>';
+    totalsEl.innerHTML = '';
+    return;
+  }
+  const totalPoder = history.reduce((s,h)=>s+(h.poder||0),0);
+  const totalGema  = history.reduce((s,h)=>s+(h.gema||0),0);
+  totalsEl.innerHTML = `<div class="history-totals">
+    <div class="totals-item"><span class="totals-label">Total de runs</span><span class="totals-val">${history.length}</span></div>
+    <div class="totals-divider"></div>
+    <div class="totals-item"><span class="totals-label">🔶 Total Poder Temporal</span><span class="totals-val">${totalPoder}</span></div>
+    <div class="totals-divider"></div>
+    <div class="totals-item"><span class="totals-label">💎 Total Gema Temporal</span><span class="totals-val">${totalGema}</span></div>
+  </div>`;
+
+  listEl.innerHTML = history.map((h, idx) => {
+    const runNo = history.length - idx;
+    const poderBadge = h.poder > 0 ? `<span class="loot-badge loot-poder">🔶 ${h.poder} Poder Temporal</span>` : '';
+    const gemaBadge  = h.gema  > 0 ? `<span class="loot-badge loot-gema">💎 ${h.gema} Gema Temporal</span>` : '';
+    const noLoot = !h.poder && !h.gema ? `<span style="font-size:12px;color:var(--text3);">Nenhum loot registrado</span>` : '';
+    const pills = (h.members||[]).map(m=>`<span class="history-member-pill">${esc(m.name)} <span style="color:var(--text3);">${clsPT(m.cls)}</span></span>`).join('');
+    return `<div class="history-entry">
+      <div class="history-entry-header">
+        <div class="history-meta">
+          <span class="history-run-label">Run #${runNo} — ${esc(h.group_name || h.groupName)}</span>
+          <span class="history-time">${fmtDate(h.timestamp)}</span>
+        </div>
+        <button class="btn btn-red btn-sm" onclick="window._deleteRun('${h.id}')">✕</button>
+      </div>
+      <div class="loot-summary">${poderBadge}${gemaBadge}${noLoot}</div>
+      <div class="history-members">${pills}</div>
+    </div>`;
+  }).join('');
+}
+
+function render() { renderRoster(); renderGroups(); renderHistory(); }
+
+// ── busca de dados ────────────────────────────────────────────
+async function fetchAll() {
+  const [charsRes, groupsRes, histRes] = await Promise.all([
+    db.from('characters').select('*'),
+    db.from('groups').select('*').order('created_at', { ascending: true }),
+    db.from('history').select('*').order('timestamp', { ascending: false })
+  ]);
+  if(charsRes.error || groupsRes.error || histRes.error) {
+    setSyncStatus('error');
+    return false;
+  }
+  characters = charsRes.data;
+  groups     = groupsRes.data.map(g => ({ ...g, members: g.members || [] }));
+  history    = histRes.data.map(h => ({ ...h, members: h.members || [] }));
+  return true;
+}
+
+// ── ações ─────────────────────────────────────────────────────
+window.addCharacter = async () => {
+  const name   = document.getElementById('inp-name').value.trim();
+  const cls    = document.getElementById('inp-class').value;
+  const clears = parseInt(document.getElementById('inp-clears').value)||0;
+  if(!name||!cls){ toast('Preencha o nome e a classe!'); return; }
+
+  const tempId = 'temp-' + Date.now();
+  characters.push({ id: tempId, name, cls, clears });
+  render();
+
+  setSyncStatus('syncing');
+  const { data, error } = await db.from('characters').insert({ name, cls, clears }).select().single();
+  if(error){
+    characters = characters.filter(c => c.id !== tempId);
+    render();
+    setSyncStatus('error'); toast('Erro: ' + error.message); return;
+  }
+  characters = characters.filter(c => c.id !== tempId);
+  characters.push(data);
+  render();
+  setSyncStatus('online');
+  document.getElementById('inp-name').value='';
+  document.getElementById('inp-class').value='';
+  document.getElementById('inp-clears').value='';
+  toast(`${name} adicionado ao elenco!`);
+};
+
+window.addGroup = async () => {
+  const n = groups.length + 1;
+
+  const tempId = 'temp-' + Date.now();
+  groups.push({ id: tempId, name: `Grupo ${n}`, members: [], created_at: new Date().toISOString() });
+  render();
+
+  setSyncStatus('syncing');
+  const { data, error } = await db.from('groups').insert({ name: `Grupo ${n}`, members: [] }).select().single();
+  if(error){
+    groups = groups.filter(g => g.id !== tempId);
+    render();
+    setSyncStatus('error'); toast('Erro: ' + error.message); return;
+  }
+  groups = groups.filter(g => g.id !== tempId);
+  groups.push({ ...data, members: data.members || [] });
+  render();
+  setSyncStatus('online');
+};
+
+window._removeChar = async id => {
+  const prevChars = [...characters];
+  const prevGroups = groups.map(g => ({...g, members: [...(g.members||[])]}));
+  characters = characters.filter(c => c.id !== id);
+  groups = groups.map(g => ({...g, members: (g.members||[]).filter(m => m !== id)}));
+  render();
+
+  setSyncStatus('syncing');
+  const affectedGroups = prevGroups.filter(g => (g.members||[]).includes(id));
+  for(const g of affectedGroups) {
+    await db.from('groups').update({ members: g.members.filter(m => m !== id) }).eq('id', g.id);
+  }
+  const { error } = await db.from('characters').delete().eq('id', id);
+  if(error){
+    characters = prevChars; groups = prevGroups; render();
+    setSyncStatus('error'); toast('Erro: ' + error.message);
+  } else { setSyncStatus('online'); }
+};
+
+window._removeGroup = async id => {
+  const prev = [...groups];
+  groups = groups.filter(g => g.id !== id);
+  render();
+  setSyncStatus('syncing');
+  const { error } = await db.from('groups').delete().eq('id', id);
+  if(error){ groups = prev; render(); setSyncStatus('error'); toast('Erro: ' + error.message); }
+  else { setSyncStatus('online'); }
+};
+
+window._removeFromGroup = async (gId, cId) => {
+  const g = groups.find(g => g.id === gId);
+  if(!g) return;
+  const prevMembers = [...(g.members||[])];
+  g.members = prevMembers.filter(m => m !== cId);
+  render();
+  setSyncStatus('syncing');
+  const { error } = await db.from('groups').update({ members: g.members }).eq('id', gId);
+  if(error){ g.members = prevMembers; render(); setSyncStatus('error'); toast('Erro: ' + error.message); }
+  else { setSyncStatus('online'); }
+};
+
+window._doAddToGroup = async gId => {
+  const sel = document.getElementById(`sel-${gId}`);
+  if(!sel||!sel.value) return;
+  const g = groups.find(g => g.id === gId);
+  if(!g) return;
+  const char = characters.find(c => c.id === sel.value);
+  if(char && isOnCooldown(char)) { toast(`⏳ ${char.name} está em cooldown! ${fmtCooldown(char)}`); return; }
+  const members = [...(g.members||[])];
+  if(members.includes(sel.value)) return;
+  members.push(sel.value);
+  g.members = members;
+  render();
+  setSyncStatus('syncing');
+  const { error } = await db.from('groups').update({ members }).eq('id', gId);
+  if(error){ g.members = members.filter(m => m !== sel.value); render(); setSyncStatus('error'); toast('Erro: ' + error.message); }
+  else { setSyncStatus('online'); }
+};
+
+window._instanceCleared = async gId => {
+  const g = groups.find(g => g.id === gId);
+  if(!g||!(g.members||[]).length){ toast('Nenhum personagem no grupo!'); return; }
+  const poder = parseInt(document.getElementById(`poder-${gId}`)?.value)||0;
+  const gema  = parseInt(document.getElementById(`gema-${gId}`)?.value)||0;
+  const memberSnapshot = (g.members||[]).map(mid => {
+    const c = characters.find(c => c.id === mid);
+    return c ? { id: c.id, name: c.name, cls: c.cls } : null;
+  }).filter(Boolean);
+
+  const prevMembersIds = [...(g.members||[])];
+  const gameDayDate = gameDay();
+  const todayISO = `${gameDayDate.getFullYear()}-${String(gameDayDate.getMonth()+1).padStart(2,'0')}-${String(gameDayDate.getDate()).padStart(2,'0')}`;
+  (g.members||[]).forEach(mid => {
+    const c = characters.find(c => c.id === mid);
+    if(c){ c.clears += 1; c.last_cleared_at = todayISO; }
+  });
+  g.members = [];
+  const newEntry = { id: 'temp-' + Date.now(), group_name: g.name, timestamp: Date.now(), members: memberSnapshot, poder, gema };
+  history.unshift(newEntry);
+  render();
+
+  setSyncStatus('syncing');
+
+  for(const mid of prevMembersIds) {
+    const c = characters.find(c => c.id === mid);
+    if(c) await db.from('characters').update({ clears: c.clears, last_cleared_at: todayISO }).eq('id', mid);
+  }
+  await db.from('groups').update({ members: [] }).eq('id', gId);
+
+  const { data, error } = await db.from('history').insert({
+    group_name: g.name,
+    timestamp: Date.now(),
+    members: memberSnapshot,
+    poder,
+    gema
+  }).select().single();
+
+  history = history.filter(h => h.id !== newEntry.id);
+  if(error){ setSyncStatus('error'); toast('Erro: ' + error.message); return; }
+  history.unshift({ ...data, members: data.members || [] });
+  render();
+  setSyncStatus('online');
+  toast('Instância concluída! Run registrada.');
+};
+
+window._deleteRun = async id => {
+  const prev = [...history];
+  history = history.filter(h => h.id !== id);
+  render();
+  setSyncStatus('syncing');
+  const { error } = await db.from('history').delete().eq('id', id);
+  if(error){ history = prev; render(); setSyncStatus('error'); toast('Erro: ' + error.message); }
+  else { setSyncStatus('online'); }
+};
+
+window.clearHistory = async () => {
+  if(!history.length){ toast('O histórico já está vazio.'); return; }
+  if(!confirm('Apagar TODO o histórico de clears? Esta ação não pode ser desfeita.')) return;
+  const prev = [...history];
+  history = [];
+  render();
+  setSyncStatus('syncing');
+  const { error } = await db.from('history').delete().neq('id', 0);
+  if(error){ history = prev; render(); setSyncStatus('error'); toast('Erro: ' + error.message); }
+  else { setSyncStatus('online'); toast('Histórico apagado.'); }
+};
+
+// ── handlers de drag & drop ───────────────────────────────────
+window._onRosterDragStart = (e, charId) => {
+  dragCharId = charId;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', charId);
+  setTimeout(() => e.target.closest('.roster-item')?.classList.add('dragging'), 0);
+};
+
+window._onRosterDragEnd = (e) => {
+  e.target.closest('.roster-item')?.classList.remove('dragging');
+  dragCharId = null;
+  document.querySelectorAll('.members-area.drag-over').forEach(el => el.classList.remove('drag-over'));
+};
+
+window._onGroupDragOver = (e) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+};
+
+window._onGroupDragLeave = (e) => {
+  if(!e.currentTarget.contains(e.relatedTarget)) {
+    e.currentTarget.classList.remove('drag-over');
+  }
+};
+
+window._onGroupDrop = async (e, gId) => {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const charId = e.dataTransfer.getData('text/plain') || dragCharId;
+  if(!charId) return;
+
+  const g = groups.find(g => g.id === gId);
+  if(!g) return;
+  const members = [...(g.members||[])];
+  if(members.includes(charId)) { toast('Personagem já está neste grupo!'); return; }
+
+  const char = characters.find(c => c.id === charId);
+  if(char && isOnCooldown(char)) { toast(`⏳ ${char.name} está em cooldown! ${fmtCooldown(char)}`); return; }
+
+  members.push(charId);
+  g.members = members;
+  render();
+
+  setSyncStatus('syncing');
+  const { error } = await db.from('groups').update({ members }).eq('id', gId);
+  if(error){ setSyncStatus('error'); toast('Erro: ' + error.message); }
+  else { setSyncStatus('online'); toast('Personagem adicionado ao grupo!'); }
+};
+
+// ── listeners em tempo real ───────────────────────────────────
+function setupRealtimeListeners() {
+  const reload = async () => {
+    setSyncStatus('syncing');
+    const ok = await fetchAll();
+    if(ok){ render(); setSyncStatus('online'); }
+  };
+
+  db.channel('dungeon-tracker')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'characters' }, reload)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'groups' },     reload)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'history' },    reload)
+    .subscribe(status => {
+      if(status === 'SUBSCRIBED') setSyncStatus('online');
+      if(status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setSyncStatus('error');
+    });
+}
+
+// ── autenticação ──────────────────────────────────────────────
+window.doLogin = async () => {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl    = document.getElementById('login-error');
+  const btn      = document.getElementById('login-btn');
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Entrando...';
+
+  const { error } = await db.auth.signInWithPassword({ email, password });
+  if(error) {
+    errEl.textContent = 'Usuário ou senha inválidos.';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Entrar';
+    return;
+  }
+  // sucesso — a mudança de sessão vai disparar onAuthStateChange
+};
+
+window.doLogout = async () => {
+  await db.auth.signOut();
+};
+
+// enter no campo de senha faz login
+document.addEventListener('DOMContentLoaded', () => {
+  const pwEl = document.getElementById('login-password');
+  if(pwEl) pwEl.addEventListener('keydown', e => { if(e.key === 'Enter') doLogin(); });
+  const emEl = document.getElementById('login-email');
+  if(emEl) emEl.addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('login-password').focus(); });
+});
+
+// ── inicialização ─────────────────────────────────────────────
+async function bootApp() {
+  const ok = await fetchAll();
+  if(!ok) {
+    document.querySelector('#loading-screen p').textContent = 'Falha na conexão. Verifique as configurações do Supabase.';
+    setSyncStatus('error');
+    return;
+  }
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  render();
+  setSyncStatus('online');
+  setupRealtimeListeners();
+}
+
+db.auth.onAuthStateChange((event, session) => {
+  const loginScreen   = document.getElementById('login-screen');
+  const loadingScreen = document.getElementById('loading-screen');
+  const mainApp       = document.getElementById('main-app');
+
+  if(session) {
+    // logado
+    loginScreen.style.display = 'none';
+    loadingScreen.style.display = 'flex';
+    mainApp.style.display = 'none';
+    bootApp();
+  } else {
+    // deslogado
+    loginScreen.style.display = 'flex';
+    loadingScreen.style.display = 'none';
+    mainApp.style.display = 'none';
+  }
+});
+
+</script>
+</body>
+</html>
