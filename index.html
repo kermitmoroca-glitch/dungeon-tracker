@@ -86,13 +86,20 @@
   .btn-ghost:hover { background: rgba(255,255,255,0.07); color: var(--text); }
   .btn-sm { height: 30px; padding: 0 10px; font-size: 12px; }
   .empty-state { color: var(--text3); font-size: 13px; text-align: center; padding: 1.5rem 0; }
-  .roster-item { display: flex; align-items: center; gap: 10px; padding: 11px 10px; border-bottom: 1px solid var(--border); }
-  .roster-item:last-child { border-bottom: none; }
-  .roster-item:hover { background: rgba(255,255,255,0.02); border-radius: var(--radius); }
-  .char-name  { font-weight: 600; font-size: 14px; flex: 1; min-width: 80px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .char-class { font-size: 11px; color: var(--text2); white-space: nowrap; min-width: 70px; text-align: left; }
+  /* ── roster card overhaul ── */
+  .roster-card { background: var(--bg2); border: 1px solid rgba(201,168,76,0.15); border-radius: var(--radius-lg); padding: 0.5rem; }
+  .roster-char-card { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  .roster-char-card:last-child { border-bottom: none; }
+  .roster-char-card:hover { background: rgba(255,255,255,0.02); border-radius: var(--radius); }
+  .roster-char-top { display: flex; align-items: center; gap: 10px; }
+  .roster-char-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .roster-char-actions { display: flex; gap: 5px; flex-shrink: 0; }
+  .roster-char-bottom { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .next-level-bar { flex: 1; min-width: 80px; height: 4px; background: var(--border2); border-radius: 2px; overflow: hidden; }
+  .next-level-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
   .badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; border: 1px solid; white-space: nowrap; letter-spacing: 0.03em; }
-  .badge-clears { background: rgba(255,255,255,0.04); border-color: var(--border2); color: var(--text2); }
+  .badge-clears { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); color: #e0dcd4; }
+  .char-class { font-size: 11px; color: #b0aca4; white-space: nowrap; min-width: 70px; text-align: left; }
   .groups-list { display: flex; flex-direction: column; gap: 14px; }
   .group-card { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.1rem; }
   .group-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
@@ -167,11 +174,10 @@
   .diff-10 { background: rgba(240,207,122,0.18); border-color: #c9a84c; color: #fff3b8; text-shadow: 0 0 8px rgba(240,207,122,0.5); }
 
   /* ── drag & drop ── */
-  .roster-item[draggable="true"] { cursor: grab; transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s; }
-  .roster-item[draggable="true"]:hover { background: rgba(201,168,76,0.04); border-radius: var(--radius); }
-  .roster-item.dragging { opacity: 0.4; transform: scale(0.97); }
-  .roster-item .drag-handle { color: var(--text3); font-size: 15px; cursor: grab; padding: 0 4px; user-select: none; flex-shrink: 0; }
-  .roster-item .drag-handle:active { cursor: grabbing; }
+  .roster-char-card[draggable="true"] { cursor: grab; }
+  .roster-char-card[draggable="true"]:active { cursor: grabbing; }
+  .roster-char-card.dragging { opacity: 0.4; transform: scale(0.97); }
+  .roster-char-card .drag-handle { color: var(--text3); font-size: 15px; cursor: grab; padding: 0 2px; user-select: none; flex-shrink: 0; }
   .drag-hint { font-size: 11px; color: var(--text3); margin-top: 6px; text-align: center; letter-spacing: 0.04em; }
 
   @media (max-width: 900px) { .main-columns { grid-template-columns: 1fr; } .col-left { position: static; border-right: none; padding-right: 0; } }
@@ -219,6 +225,7 @@
       <option value="Guillotine Cross">Algoz</option>
       <option value="Shadow Chaser">Arruaceiro</option>
     </select>
+    <input type="number" id="edit-clears" placeholder="Quantidade de clears" min="0" />
     <div class="modal-actions">
       <button class="btn btn-ghost btn-sm" onclick="closeEditModal()">Cancelar</button>
       <button class="btn btn-gold btn-sm" onclick="saveEdit()">Salvar</button>
@@ -457,31 +464,68 @@ function renderRoster() {
     if(hint) hint.style.display = 'none';
     return;
   }
+
+  // calcula progresso dentro do nível atual
+  const levelProgress = clears => {
+    const idx  = DIFF.findIndex(d => clears >= d.min && clears <= d.max);
+    const cur  = DIFF[idx];
+    const next = DIFF[idx + 1];
+    if(!next) return { pct: 100, remaining: 0, nextLabel: null };
+    const inLevel  = clears - cur.min;
+    const levelLen = next.min - cur.min;
+    const pct      = Math.round((inLevel / levelLen) * 100);
+    return { pct, remaining: next.min - clears, nextLabel: next.label };
+  };
+
   el.innerHTML = characters
     .slice().sort((a,b) => a.name.localeCompare(b.name))
     .map(c => {
-      const d     = getDiff(c.clears);
-      const color = clsMeta(c.cls).color;
-      const onCD  = isOnCooldown(c);
-      const cdLbl = fmtCooldown(c);
-      return `<div class="roster-item" draggable="${!onCD}" data-char-id="${c.id}"
+      const d      = getDiff(c.clears);
+      const color  = clsMeta(c.cls).color;
+      const onCD   = isOnCooldown(c);
+      const cdLbl  = fmtCooldown(c);
+      const prog   = levelProgress(c.clears);
+
+      const barColor = d.cls === 'diff-10' ? '#f0cf7a' :
+        d.cls === 'diff-9' ? '#f0cf7a' : d.cls === 'diff-8' ? '#d7bde2' :
+        d.cls === 'diff-7' ? '#af7ac5' : d.cls === 'diff-6' ? '#cd6155' :
+        d.cls === 'diff-5' ? '#e74c3c' : d.cls === 'diff-4' ? '#f39c12' :
+        d.cls === 'diff-3' ? '#f4d03f' : d.cls === 'diff-2' ? '#5dade2' : '#2ecc71';
+
+      return `<div class="roster-char-card" draggable="${!onCD}" data-char-id="${c.id}"
           ondragstart="window._onRosterDragStart(event,'${c.id}')"
           ondragend="window._onRosterDragEnd(event)"
-          style="${onCD?'opacity:0.5;':''}">
-        <span class="drag-handle" title="${onCD?'Em cooldown':'Arraste para um grupo'}" style="${onCD?'cursor:not-allowed;':''}">⠿</span>
-        ${clsIcon(c.cls, 18)}
-        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;">
-          <span class="char-name" style="color:${color};">${esc(c.name)}</span>
-          <span class="char-class">${clsPT(c.cls)}</span>
-          ${onCD ? `<span style="color:#e74c3c;font-size:10px;">⏳ ${cdLbl}</span>` : ''}
+          style="${onCD ? 'opacity:0.55;' : ''}">
+
+        <!-- linha superior: drag + ícone + nome/classe + botões -->
+        <div class="roster-char-top">
+          <span class="drag-handle" title="${onCD ? 'Em cooldown' : 'Arraste para um grupo'}" style="${onCD ? 'cursor:not-allowed;' : ''}">⠿</span>
+          ${clsIcon(c.cls, 22)}
+          <div class="roster-char-info">
+            <span style="font-weight:700;font-size:14px;color:${color};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(c.name)}</span>
+            <span style="font-size:11px;color:#b8b4ac;">${clsPT(c.cls)}</span>
+            ${onCD ? `<span style="color:#e74c3c;font-size:10px;">⏳ ${cdLbl}</span>` : ''}
+          </div>
+          <div class="roster-char-actions">
+            <button class="btn btn-blue btn-sm" onclick="openEditModal('${c.id}')" title="Editar">✏</button>
+            <button class="btn btn-ghost btn-sm" onclick="window._resetCooldown('${c.id}')" title="Resetar cooldown">↺</button>
+            <button class="btn btn-red btn-sm" onclick="window._removeChar('${c.id}')">✕</button>
+          </div>
         </div>
-        <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
+
+        <!-- linha inferior: clears + nível + barra de progresso + faltam X -->
+        <div class="roster-char-bottom">
           <span class="badge badge-clears">${c.clears} clears</span>
           <span class="badge ${d.cls}">${d.label}</span>
+          ${prog.nextLabel ? `
+          <div class="next-level-bar" title="${prog.remaining} clears para ${prog.nextLabel}">
+            <div class="next-level-fill" style="width:${prog.pct}%;background:${barColor};"></div>
+          </div>
+          <span style="font-size:10px;color:#b0aca4;white-space:nowrap;">
+            ${prog.remaining} para ${prog.nextLabel}
+          </span>` : `<span style="font-size:10px;color:var(--gold);white-space:nowrap;">✦ Nível máximo</span>`}
         </div>
-        <button class="btn btn-blue btn-sm" onclick="openEditModal('${c.id}')" title="Editar">✏</button>
-        <button class="btn btn-ghost btn-sm" onclick="window._resetCooldown('${c.id}')" title="Resetar cooldown">↺</button>
-        <button class="btn btn-red btn-sm" onclick="window._removeChar('${c.id}')">✕</button>
+
       </div>`;
     }).join('');
   if(hint) hint.style.display = 'block';
@@ -778,8 +822,9 @@ window.clearHistory = async () => {
 window.openEditModal = id => {
   const c = characters.find(c=>c.id===id); if(!c) return;
   editingCharId = id;
-  document.getElementById('edit-name').value  = c.name;
-  document.getElementById('edit-class').value = c.cls;
+  document.getElementById('edit-name').value   = c.name;
+  document.getElementById('edit-class').value  = c.cls;
+  document.getElementById('edit-clears').value = c.clears;
   document.getElementById('edit-modal').style.display = 'flex';
 };
 window.closeEditModal = () => {
@@ -788,15 +833,17 @@ window.closeEditModal = () => {
 };
 window.saveEdit = async () => {
   const c = characters.find(c=>c.id===editingCharId); if(!c) return;
-  const name = document.getElementById('edit-name').value.trim();
-  const cls  = document.getElementById('edit-class').value;
+  const name   = document.getElementById('edit-name').value.trim();
+  const cls    = document.getElementById('edit-class').value;
+  const clears = parseInt(document.getElementById('edit-clears').value) || 0;
   if(!name||!cls){ toast('Preencha todos os campos!'); return; }
-  const oldName=c.name, oldCls=c.cls;
-  c.name=name; c.cls=cls;
+  const oldName=c.name, oldCls=c.cls, oldClears=c.clears;
+  c.name=name; c.cls=cls; c.clears=clears;
+  const savedId = editingCharId;
   closeEditModal(); render();
   setSyncStatus('syncing');
-  const { error } = await db.from('characters').update({ name, cls }).eq('id',editingCharId||c.id);
-  if(error){ c.name=oldName; c.cls=oldCls; render(); setSyncStatus('error'); toast('Erro: '+error.message); }
+  const { error } = await db.from('characters').update({ name, cls, clears }).eq('id', savedId);
+  if(error){ c.name=oldName; c.cls=oldCls; c.clears=oldClears; render(); setSyncStatus('error'); toast('Erro: '+error.message); }
   else { setSyncStatus('online'); toast(`${name} atualizado!`); }
 };
 
@@ -826,10 +873,10 @@ window._onRosterDragStart = (e, charId) => {
   dragCharId = charId;
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/plain', charId);
-  setTimeout(() => e.target.closest('.roster-item')?.classList.add('dragging'), 0);
+  setTimeout(() => e.target.closest('.roster-char-card')?.classList.add('dragging'), 0);
 };
 window._onRosterDragEnd = (e) => {
-  e.target.closest('.roster-item')?.classList.remove('dragging');
+  e.target.closest('.roster-char-card')?.classList.remove('dragging');
   dragCharId = null;
   document.querySelectorAll('.members-area.drag-over').forEach(el=>el.classList.remove('drag-over'));
 };
