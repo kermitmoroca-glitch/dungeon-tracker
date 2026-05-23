@@ -13,6 +13,7 @@
     --gold: #c9a84c; --gold2: #f0cf7a; --gold-bg: rgba(201,168,76,0.1);
     --red: #c0392b; --red-bg: rgba(192,57,43,0.12);
     --green: #27ae60; --green-bg: rgba(39,174,96,0.12);
+    --blue: #2980b9; --blue-bg: rgba(41,128,185,0.12); --blue2: #5dade2;
     --purple: #8e44ad; --purple-bg: rgba(142,68,173,0.12); --purple2: #d7bde2;
     --radius: 8px; --radius-lg: 12px;
   }
@@ -24,26 +25,35 @@
       radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,168,76,0.06) 0%, transparent 60%),
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='1' height='1' fill='rgba(255,255,255,0.015)'/%3E%3C/svg%3E");
   }
-  
   .app { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
   header { text-align: center; padding: 2rem 0 1.75rem; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
   header h1 { font-family: 'Cinzel', serif; font-size: clamp(1.6rem,3vw,2.2rem); font-weight: 700; color: var(--gold2); letter-spacing: 0.08em; text-shadow: 0 0 40px rgba(201,168,76,0.3); margin-bottom: 0.4rem; }
   header p { font-size: 13px; color: var(--text2); letter-spacing: 0.05em; text-transform: uppercase; }
 
-  /* ── two-column main layout ── */
-  .main-columns {
-    display: grid;
-    grid-template-columns: 420px 1fr;
-    gap: 2rem;
-    align-items: start;
-    margin-bottom: 2rem;
+  /* ── dungeon selector ── */
+  .dungeon-bar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: var(--bg2); border: 1px solid rgba(201,168,76,0.2);
+    border-radius: var(--radius-lg); padding: 10px 16px; margin-bottom: 1.5rem;
   }
+  .dungeon-bar-label { font-family: 'Cinzel', serif; font-size: 11px; color: var(--gold); letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
+  .dungeon-tab {
+    height: 32px; padding: 0 14px; border-radius: 20px; border: 1px solid var(--border2);
+    background: transparent; color: var(--text2); font-family: 'Barlow', sans-serif;
+    font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .dungeon-tab:hover { background: var(--bg3); color: var(--text); }
+  .dungeon-tab.active { background: var(--gold-bg); border-color: var(--gold); color: var(--gold2); font-weight: 600; }
+  .dungeon-cd-info { font-size: 11px; color: var(--text3); margin-left: auto; white-space: nowrap; }
+
+  /* ── two-column main layout ── */
+  .main-columns { display: grid; grid-template-columns: 420px 1fr; gap: 2rem; align-items: start; margin-bottom: 2rem; }
   .col-left  { display: flex; flex-direction: column; gap: 1.25rem; position: sticky; top: 1.5rem; border-right: 2px solid rgba(201,168,76,0.18); padding-right: 2rem; }
   .col-right { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
   .sync-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--text3); vertical-align: middle; }
-  .sync-dot.online { background: #2ecc71; box-shadow: 0 0 6px rgba(46,204,113,0.6); }
+  .sync-dot.online  { background: #2ecc71; box-shadow: 0 0 6px rgba(46,204,113,0.6); }
   .sync-dot.syncing { background: var(--gold); box-shadow: 0 0 6px rgba(201,168,76,0.6); animation: pulse 1s infinite; }
-  .sync-dot.error { background: #e74c3c; }
+  .sync-dot.error   { background: #e74c3c; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
   .section { margin-bottom: 0; }
   .section-label { font-family: 'Cinzel', serif; font-size: 11px; font-weight: 600; color: var(--gold); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 8px; }
@@ -64,10 +74,12 @@
   .btn:hover { background: var(--bg3); }
   .btn:active { transform: scale(0.97); }
   .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-  .btn-gold { background: var(--gold-bg); border-color: var(--gold); color: var(--gold2); }
-  .btn-gold:hover { background: rgba(201,168,76,0.18); }
-  .btn-red { background: var(--red-bg); border-color: var(--red); color: #e74c3c; }
-  .btn-red:hover { background: rgba(192,57,43,0.2); }
+  .btn-gold  { background: var(--gold-bg);  border-color: var(--gold);  color: var(--gold2); }
+  .btn-gold:hover  { background: rgba(201,168,76,0.18); }
+  .btn-red   { background: var(--red-bg);   border-color: var(--red);   color: #e74c3c; }
+  .btn-red:hover   { background: rgba(192,57,43,0.2); }
+  .btn-blue  { background: var(--blue-bg);  border-color: var(--blue);  color: var(--blue2); }
+  .btn-blue:hover  { background: rgba(41,128,185,0.2); }
   .btn-green { background: var(--green-bg); border-color: var(--green); color: #2ecc71; width: 100%; justify-content: center; height: 36px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; margin-top: 9px; }
   .btn-green:hover { background: rgba(39,174,96,0.2); }
   .btn-ghost { background: rgba(255,255,255,0.03); border-color: var(--border2); color: var(--text2); }
@@ -77,17 +89,17 @@
   .roster-item { display: flex; align-items: center; gap: 10px; padding: 11px 10px; border-bottom: 1px solid var(--border); }
   .roster-item:last-child { border-bottom: none; }
   .roster-item:hover { background: rgba(255,255,255,0.02); border-radius: var(--radius); }
-  .char-name { font-weight: 600; font-size: 14px; flex: 1; min-width: 80px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .char-name  { font-weight: 600; font-size: 14px; flex: 1; min-width: 80px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .char-class { font-size: 11px; color: var(--text2); white-space: nowrap; min-width: 70px; text-align: left; }
   .badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; border: 1px solid; white-space: nowrap; letter-spacing: 0.03em; }
   .badge-clears { background: rgba(255,255,255,0.04); border-color: var(--border2); color: var(--text2); }
-  .badge-next { font-size: 10px; color: var(--text3); border: none; padding: 0; background: none; }
   .groups-list { display: flex; flex-direction: column; gap: 14px; }
   .group-card { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.1rem; }
   .group-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
   .group-name { font-family: 'Cinzel', serif; font-size: 13px; color: var(--gold); letter-spacing: 0.06em; }
-  .members-area { min-height: 40px; background: rgba(0,0,0,0.2); border: 1px dashed var(--border2); border-radius: var(--radius); padding: 7px 10px; display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 9px; align-items: center; }
+  .members-area { min-height: 40px; background: rgba(0,0,0,0.2); border: 1px dashed var(--border2); border-radius: var(--radius); padding: 7px 10px; display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 9px; align-items: center; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
   .members-area.is-empty::after { content: 'Nenhum personagem no grupo'; font-size: 12px; color: var(--text3); }
+  .members-area.drag-over { border-color: var(--gold); background: rgba(201,168,76,0.08); box-shadow: 0 0 0 2px rgba(201,168,76,0.2); }
   .member-pill { display: inline-flex; align-items: center; gap: 5px; background: var(--bg2); border: 1px solid var(--border2); border-radius: 20px; padding: 3px 9px; font-size: 12px; }
   .pill-remove { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 15px; line-height: 1; padding: 0; transition: color 0.15s; }
   .pill-remove:hover { color: #e74c3c; }
@@ -121,85 +133,49 @@
   .spinner { width: 36px; height: 36px; border: 2px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* ── modal de edição ── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 8000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .modal-box { background: var(--bg2); border: 1px solid rgba(201,168,76,0.25); border-radius: var(--radius-lg); padding: 1.75rem; width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 0 60px rgba(0,0,0,0.6); }
+  .modal-title { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--gold2); letter-spacing: 0.08em; }
+  .modal-box input, .modal-box select { width: 100%; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+
   /* ── tela de login ── */
-  #login-screen {
-    position: fixed; inset: 0; background: var(--bg); z-index: 9999;
-    display: flex; align-items: center; justify-content: center;
-    background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,168,76,0.08) 0%, transparent 60%);
-  }
-  #login-box {
-    background: var(--bg2); border: 1px solid rgba(201,168,76,0.25);
-    border-radius: var(--radius-lg); padding: 2.5rem 2rem;
-    width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 14px;
-    box-shadow: 0 0 60px rgba(0,0,0,0.6), 0 0 30px rgba(201,168,76,0.05);
-  }
-  #login-title {
-    font-family: 'Cinzel', serif; font-size: 1.4rem; font-weight: 700;
-    color: var(--gold2); text-align: center; letter-spacing: 0.1em;
-    text-shadow: 0 0 30px rgba(201,168,76,0.3);
-  }
+  #login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,168,76,0.08) 0%, transparent 60%); }
+  #login-box { background: var(--bg2); border: 1px solid rgba(201,168,76,0.25); border-radius: var(--radius-lg); padding: 2.5rem 2rem; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 0 60px rgba(0,0,0,0.6), 0 0 30px rgba(201,168,76,0.05); }
+  #login-title { font-family: 'Cinzel', serif; font-size: 1.4rem; font-weight: 700; color: var(--gold2); text-align: center; letter-spacing: 0.1em; text-shadow: 0 0 30px rgba(201,168,76,0.3); }
   #login-subtitle { font-size: 12px; color: var(--text3); text-align: center; letter-spacing: 0.05em; }
-  #login-box input {
-    width: 100%; height: 42px; background: var(--bg3);
-    border: 1px solid var(--border2); border-radius: var(--radius);
-    color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14px;
-    padding: 0 14px; outline: none; transition: border-color 0.2s;
-  }
+  #login-box input { width: 100%; height: 42px; background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius); color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14px; padding: 0 14px; outline: none; transition: border-color 0.2s; }
   #login-box input:focus { border-color: var(--gold); }
-  #login-btn {
-    height: 42px; background: var(--gold-bg); border: 1px solid var(--gold);
-    border-radius: var(--radius); color: var(--gold2); font-family: 'Barlow', sans-serif;
-    font-size: 14px; font-weight: 600; letter-spacing: 0.06em; cursor: pointer;
-    transition: all 0.15s; margin-top: 4px;
-  }
+  #login-btn { height: 42px; background: var(--gold-bg); border: 1px solid var(--gold); border-radius: var(--radius); color: var(--gold2); font-family: 'Barlow', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.06em; cursor: pointer; transition: all 0.15s; margin-top: 4px; }
   #login-btn:hover { background: rgba(201,168,76,0.18); }
   #login-btn:active { transform: scale(0.97); }
   #login-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-  #login-error {
-    background: var(--red-bg); border: 1px solid var(--red); border-radius: var(--radius);
-    color: #e74c3c; font-size: 13px; padding: 10px 14px; text-align: center;
-  }
-  #logout-btn {
-    font-size: 12px; color: var(--text3); background: none; border: none;
-    cursor: pointer; padding: 0; transition: color 0.15s; font-family: 'Barlow', sans-serif;
-  }
+  #login-error { background: var(--red-bg); border: 1px solid var(--red); border-radius: var(--radius); color: #e74c3c; font-size: 13px; padding: 10px 14px; text-align: center; }
+  #logout-btn { font-size: 12px; color: var(--text3); background: none; border: none; cursor: pointer; padding: 0; transition: color 0.15s; font-family: 'Barlow', sans-serif; }
   #logout-btn:hover { color: #e74c3c; }
-  .diff-1  { background: rgba(39,174,96,0.1);   border-color: #27ae60; color: #2ecc71; }
-  .diff-2  { background: rgba(52,152,219,0.1);  border-color: #2980b9; color: #5dade2; }
-  .diff-3  { background: rgba(241,196,15,0.1);  border-color: #d4ac0d; color: #f4d03f; }
-  .diff-4  { background: rgba(230,126,34,0.1);  border-color: #ca6f1e; color: #f39c12; }
-  .diff-5  { background: rgba(231,76,60,0.1);   border-color: #c0392b; color: #e74c3c; }
-  .diff-6  { background: rgba(192,57,43,0.12);  border-color: #96281b; color: #cd6155; }
-  .diff-7  { background: rgba(155,89,182,0.12); border-color: #7d3c98; color: #af7ac5; }
-  .diff-8  { background: rgba(142,68,173,0.15); border-color: #6c3483; color: #d7bde2; }
-  .diff-9  { background: rgba(201,168,76,0.12); border-color: #9a7d0a; color: #f0cf7a; }
-  .diff-10 { background: rgba(240,207,122,0.18);border-color: #c9a84c; color: #fff3b8; text-shadow: 0 0 8px rgba(240,207,122,0.5); }
+
+  .diff-1  { background: rgba(39,174,96,0.1);    border-color: #27ae60; color: #2ecc71; }
+  .diff-2  { background: rgba(52,152,219,0.1);   border-color: #2980b9; color: #5dade2; }
+  .diff-3  { background: rgba(241,196,15,0.1);   border-color: #d4ac0d; color: #f4d03f; }
+  .diff-4  { background: rgba(230,126,34,0.1);   border-color: #ca6f1e; color: #f39c12; }
+  .diff-5  { background: rgba(231,76,60,0.1);    border-color: #c0392b; color: #e74c3c; }
+  .diff-6  { background: rgba(192,57,43,0.12);   border-color: #96281b; color: #cd6155; }
+  .diff-7  { background: rgba(155,89,182,0.12);  border-color: #7d3c98; color: #af7ac5; }
+  .diff-8  { background: rgba(142,68,173,0.15);  border-color: #6c3483; color: #d7bde2; }
+  .diff-9  { background: rgba(201,168,76,0.12);  border-color: #9a7d0a; color: #f0cf7a; }
+  .diff-10 { background: rgba(240,207,122,0.18); border-color: #c9a84c; color: #fff3b8; text-shadow: 0 0 8px rgba(240,207,122,0.5); }
+
   /* ── drag & drop ── */
   .roster-item[draggable="true"] { cursor: grab; transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s; }
   .roster-item[draggable="true"]:hover { background: rgba(201,168,76,0.04); border-radius: var(--radius); }
   .roster-item.dragging { opacity: 0.4; transform: scale(0.97); }
   .roster-item .drag-handle { color: var(--text3); font-size: 15px; cursor: grab; padding: 0 4px; user-select: none; flex-shrink: 0; }
   .roster-item .drag-handle:active { cursor: grabbing; }
-
-  .members-area.drag-over {
-    border-color: var(--gold);
-    background: rgba(201,168,76,0.08);
-    box-shadow: 0 0 0 2px rgba(201,168,76,0.2);
-  }
-  .members-area { transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
-
   .drag-hint { font-size: 11px; color: var(--text3); margin-top: 6px; text-align: center; letter-spacing: 0.04em; }
 
-  @media (max-width: 900px) {
-    .main-columns { grid-template-columns: 1fr; }
-    .col-left { position: static; border-right: none; padding-right: 0; }
-  }
-  @media (max-width:600px) {
-    #inp-name,#inp-class,#inp-clears { width:100%; }
-    .form-row { flex-direction:column; align-items:stretch; }
-    .btn-gold { width:100%; justify-content:center; }
-    .loot-row { flex-direction:column; align-items:flex-start; }
-  }
+  @media (max-width: 900px) { .main-columns { grid-template-columns: 1fr; } .col-left { position: static; border-right: none; padding-right: 0; } }
+  @media (max-width: 600px) { #inp-name,#inp-class,#inp-clears { width:100%; } .form-row { flex-direction:column; align-items:stretch; } .btn-gold { width:100%; justify-content:center; } .loot-row { flex-direction:column; align-items:flex-start; } }
 </style>
 </head>
 <body>
@@ -223,6 +199,33 @@
   <p>Conectando ao Supabase...</p>
 </div>
 
+<!-- Modal de edição de personagem -->
+<div id="edit-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeEditModal()">
+  <div class="modal-box">
+    <div class="modal-title">✏️ Editar Personagem</div>
+    <input type="text" id="edit-name" placeholder="Nome do personagem" />
+    <select id="edit-class">
+      <option value="Rune Knight">Cavaleiro Rúnico</option>
+      <option value="Royal Guard">Guardião Real</option>
+      <option value="Warlock">Arcano</option>
+      <option value="Sorcerer">Feiticeiro</option>
+      <option value="Ranger">Caçador</option>
+      <option value="Minstrel">Bardo</option>
+      <option value="Wanderer">Musa</option>
+      <option value="Arch Bishop">Arcebispo</option>
+      <option value="Sura">Mestre</option>
+      <option value="Mechanic">Mecânico</option>
+      <option value="Genetic">Criador</option>
+      <option value="Guillotine Cross">Algoz</option>
+      <option value="Shadow Chaser">Arruaceiro</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeEditModal()">Cancelar</button>
+      <button class="btn btn-gold btn-sm" onclick="saveEdit()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <div class="app" id="main-app" style="display:none;">
   <header>
     <h1>⚔ Rastreador de Dungeons</h1>
@@ -234,12 +237,16 @@
     </p>
   </header>
 
+  <!-- Seletor de dungeon -->
+  <div class="dungeon-bar" id="dungeon-bar">
+    <span class="dungeon-bar-label">⚔ Dungeon</span>
+    <div id="dungeon-tabs" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    <span class="dungeon-cd-info" id="dungeon-cd-info"></span>
+  </div>
+
   <!-- Layout em duas colunas -->
   <div class="main-columns">
-
-    <!-- ESQUERDA: Adicionar Personagem + Elenco -->
     <div class="col-left">
-
       <!-- Adicionar Personagem -->
       <div class="section">
         <div class="section-label">Adicionar Personagem</div>
@@ -261,17 +268,14 @@
           </div>
         </div>
       </div>
-
       <!-- Elenco -->
       <div class="section">
         <div class="section-label">Elenco</div>
         <div class="roster-card"><div id="roster-list"><div class="empty-state">Nenhum personagem ainda.</div></div></div>
         <div class="drag-hint" id="drag-hint" style="display:none;">✦ Arraste personagens para um grupo →</div>
       </div>
+    </div>
 
-    </div><!-- /col-left -->
-
-    <!-- DIREITA: Grupos -->
     <div class="col-right">
       <div class="section">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
@@ -280,11 +284,10 @@
         </div>
         <div class="groups-list" id="groups-list"><div class="empty-state">Nenhum grupo ainda.</div></div>
       </div>
-    </div><!-- /col-right -->
+    </div>
+  </div>
 
-  </div><!-- /main-columns -->
-
-  <!-- Histórico — largura total abaixo -->
+  <!-- Histórico -->
   <div class="section" style="margin-bottom:1.5rem;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
       <div class="section-label" style="margin-bottom:0;flex:1;">Histórico de Clears</div>
@@ -297,7 +300,6 @@
 
 <div id="toast"></div>
 
-<!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ══════════════════════════════════════════════════════════════
@@ -310,45 +312,58 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON);
 
-// ── espelhos locais (atualizados pelos listeners) ─────────────
-let characters = [];
-let groups     = [];
-let history    = [];
+// ── estado global ─────────────────────────────────────────────
+let characters  = [];
+let groups      = [];
+let history     = [];
+let dungeons    = [];
+let activeDungeonId = null;
+let editingCharId   = null;
+let dragCharId      = null;
 
-// ── helpers ──────────────────────────────────────────────────
+// ── helpers gerais ────────────────────────────────────────────
 const DIFF = [
-  {min:0,  max:4,  label:'Nv 1', cls:'diff-1'},
-  {min:5,  max:10, label:'Nv 2', cls:'diff-2'},
-  {min:11, max:17, label:'Nv 3', cls:'diff-3'},
-  {min:18, max:25, label:'Nv 4', cls:'diff-4'},
-  {min:26, max:34, label:'Nv 5', cls:'diff-5'},
-  {min:35, max:44, label:'Nv 6', cls:'diff-6'},
-  {min:45, max:59, label:'Nv 7', cls:'diff-7'},
-  {min:60, max:79, label:'Nv 8', cls:'diff-8'},
-  {min:80, max:99, label:'Nv 9', cls:'diff-9'},
-  {min:100,max:Infinity,label:'Nv 10',cls:'diff-10'}
+  {min:0,   max:4,   label:'Nv 1',  cls:'diff-1'},
+  {min:5,   max:10,  label:'Nv 2',  cls:'diff-2'},
+  {min:11,  max:17,  label:'Nv 3',  cls:'diff-3'},
+  {min:18,  max:25,  label:'Nv 4',  cls:'diff-4'},
+  {min:26,  max:34,  label:'Nv 5',  cls:'diff-5'},
+  {min:35,  max:44,  label:'Nv 6',  cls:'diff-6'},
+  {min:45,  max:59,  label:'Nv 7',  cls:'diff-7'},
+  {min:60,  max:79,  label:'Nv 8',  cls:'diff-8'},
+  {min:80,  max:99,  label:'Nv 9',  cls:'diff-9'},
+  {min:100, max:Infinity, label:'Nv 10', cls:'diff-10'}
 ];
-const THRESHOLDS = [5,11,18,26,35,45,60,80,100];
 const getDiff = c => DIFF.find(d => c >= d.min && c <= d.max) || DIFF[0];
-const getNext = c => { const n = THRESHOLDS.find(t => t > c); return n ? `${n-c} para o próximo nível` : 'Nível máximo atingido'; };
-const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const esc     = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const fmtDate = ts => new Date(ts).toLocaleString('pt-BR');
 
 // ── helpers de cooldown (reset às 4h da manhã) ────────────────
-// "dia de jogo" = hora real menos 4h, para que 00h~03h59 pertençam ao dia anterior
 const gameDay = (date = new Date()) => {
   const d = new Date(date);
-  d.setHours(d.getHours() - 4); // recua 4h para cruzar o reset
-  d.setHours(0, 0, 0, 0);       // zera para comparação apenas por data
+  d.setHours(d.getHours() - 4);
+  d.setHours(0, 0, 0, 0);
   return d;
 };
+
+const activeDungeon = () => dungeons.find(d => d.id === activeDungeonId);
+
+// Lê o last_cleared_at da dungeon ativa de um personagem
+const charLastCleared = c => {
+  const dng = activeDungeon();
+  if(!dng) return c.last_cleared_at || null;
+  const cooldowns = c.cooldowns || {};
+  return cooldowns[dng.id] || c.last_cleared_at || null;
+};
+
 const cooldownUntil = c => {
-  if(!c.last_cleared_at) return null;
-  // last_cleared_at já é salvo como data de jogo (string "YYYY-MM-DD")
-  // não aplicar gameDay() de novo, só parsear como data local
-  const parts = c.last_cleared_at.slice(0, 10).split('-');
-  const cleared = new Date(parts[0], parts[1] - 1, parts[2]); // data local, sem fuso
-  cleared.setDate(cleared.getDate() + 3);
+  const dng = activeDungeon();
+  const cdDays = dng ? (dng.cooldown_days || 3) : 3;
+  const lca = charLastCleared(c);
+  if(!lca) return null;
+  const parts = lca.slice(0, 10).split('-');
+  const cleared = new Date(parts[0], parts[1] - 1, parts[2]);
+  cleared.setDate(cleared.getDate() + cdDays);
   return cleared;
 };
 const isOnCooldown = c => {
@@ -366,7 +381,7 @@ const fmtCooldown = c => {
   return `Disponível ${d} (${diff}d)`;
 };
 
-// ── cores & ícones de classe ──────────────────────────────────
+// ── classe de ícones ──────────────────────────────────────────
 const BROWIKI = 'https://browiki.org/wiki/Special:FilePath/';
 const CLASS_META = {
   'Rune Knight':      { color: '#e05252', img: `${BROWIKI}Lordespartyicn.png` },
@@ -384,22 +399,21 @@ const CLASS_META = {
   'Shadow Chaser':    { color: '#b07ab0', img: `${BROWIKI}Arruaceirospartyicn.png` },
 };
 const CLASS_PT = {
-  'Rune Knight': 'Cavaleiro Rúnico', 'Royal Guard': 'Guardião Real', 'Warlock': 'Arcano',
-  'Sorcerer': 'Feiticeiro', 'Ranger': 'Caçador', 'Minstrel': 'Bardo',
-  'Wanderer': 'Musa', 'Arch Bishop': 'Arcebispo', 'Sura': 'Mestre',
-  'Mechanic': 'Mecânico', 'Genetic': 'Criador', 'Guillotine Cross': 'Algoz',
-  'Shadow Chaser': 'Arruaceiro',
+  'Rune Knight':'Cavaleiro Rúnico','Royal Guard':'Guardião Real','Warlock':'Arcano',
+  'Sorcerer':'Feiticeiro','Ranger':'Caçador','Minstrel':'Bardo',
+  'Wanderer':'Musa','Arch Bishop':'Arcebispo','Sura':'Mestre',
+  'Mechanic':'Mecânico','Genetic':'Criador','Guillotine Cross':'Algoz',
+  'Shadow Chaser':'Arruaceiro',
 };
-const clsPT = cls => CLASS_PT[cls] || cls;
+const clsPT   = cls => CLASS_PT[cls] || cls;
 const clsMeta = cls => CLASS_META[cls] || { color: 'var(--text)', img: null };
 const clsIcon = (cls, size=16) => {
   const m = clsMeta(cls);
-  if (m.img) {
-    return `<img src="${m.img}" width="${size}" height="${size}" alt="${cls}" title="${cls}" style="display:inline-block;flex-shrink:0;image-rendering:pixelated;vertical-align:middle;" onerror="this.style.display='none'">`;
-  }
+  if(m.img) return `<img src="${m.img}" width="${size}" height="${size}" alt="${cls}" title="${cls}" style="display:inline-block;flex-shrink:0;image-rendering:pixelated;vertical-align:middle;" onerror="this.style.display='none'">`;
   return `<span style="display:inline-flex;width:${size}px;height:${size}px;flex-shrink:0;"></span>`;
 };
 
+// ── toast & sync ──────────────────────────────────────────────
 function toast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -407,56 +421,70 @@ function toast(msg) {
   setTimeout(() => el.classList.remove('show'), 2600);
 }
 function setSyncStatus(state) {
-  const dot   = document.getElementById('sync-dot');
-  const label = document.getElementById('sync-label');
-  if(state === 'online')  { dot.className='sync-dot online';  label.textContent='Online — alterações sincronizam em tempo real'; }
-  if(state === 'syncing') { dot.className='sync-dot syncing'; label.textContent='Sincronizando...'; }
-  if(state === 'error')   { dot.className='sync-dot error';   label.textContent='Erro de conexão'; }
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  if(state==='online')  { dot.className='sync-dot online';  lbl.textContent='Online — alterações sincronizam em tempo real'; }
+  if(state==='syncing') { dot.className='sync-dot syncing'; lbl.textContent='Sincronizando...'; }
+  if(state==='error')   { dot.className='sync-dot error';   lbl.textContent='Erro de conexão'; }
 }
 
-// ── estado de drag ────────────────────────────────────────────
-let dragCharId = null;
+// ── render dungeon tabs ───────────────────────────────────────
+function renderDungeonBar() {
+  const tabsEl = document.getElementById('dungeon-tabs');
+  const infoEl = document.getElementById('dungeon-cd-info');
+  tabsEl.innerHTML = dungeons.map(d =>
+    `<button class="dungeon-tab${d.id===activeDungeonId?' active':''}" onclick="setActiveDungeon('${d.id}')">${esc(d.name)}</button>`
+  ).join('');
+  const dng = activeDungeon();
+  infoEl.textContent = dng ? `Cooldown: ${dng.cooldown_days} dias` : '';
+}
 
-// ── render ────────────────────────────────────────────────────
+window.setActiveDungeon = id => {
+  activeDungeonId = id;
+  renderDungeonBar();
+  render();
+};
+
+// ── render roster ─────────────────────────────────────────────
 function renderRoster() {
-  const el = document.getElementById('roster-list');
+  const el   = document.getElementById('roster-list');
   const hint = document.getElementById('drag-hint');
-  el.style.display = '';
-  el.style.gridTemplateColumns = '';
-  el.style.gap = '';
   if(!characters.length) {
-    el.innerHTML='<div class="empty-state">Nenhum personagem ainda. Adicione um acima.</div>';
+    el.innerHTML = '<div class="empty-state">Nenhum personagem ainda. Adicione um acima.</div>';
     if(hint) hint.style.display = 'none';
     return;
   }
   el.innerHTML = characters
-    .slice().sort((a,b)=>a.name.localeCompare(b.name))
+    .slice().sort((a,b) => a.name.localeCompare(b.name))
     .map(c => {
-      const d = getDiff(c.clears), nx = getNext(c.clears);
-      const { color } = clsMeta(c.cls);
-      const onCD = isOnCooldown(c);
-      const cdLabel = fmtCooldown(c);
+      const d     = getDiff(c.clears);
+      const color = clsMeta(c.cls).color;
+      const onCD  = isOnCooldown(c);
+      const cdLbl = fmtCooldown(c);
       return `<div class="roster-item" draggable="${!onCD}" data-char-id="${c.id}"
           ondragstart="window._onRosterDragStart(event,'${c.id}')"
           ondragend="window._onRosterDragEnd(event)"
-          style="${onCD ? 'opacity:0.5;' : ''}">
-        <span class="drag-handle" title="${onCD ? 'Em cooldown' : 'Arraste para um grupo'}" style="${onCD ? 'cursor:not-allowed;' : ''}">⠿</span>
+          style="${onCD?'opacity:0.5;':''}">
+        <span class="drag-handle" title="${onCD?'Em cooldown':'Arraste para um grupo'}" style="${onCD?'cursor:not-allowed;':''}">⠿</span>
         ${clsIcon(c.cls, 18)}
         <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;">
           <span class="char-name" style="color:${color};">${esc(c.name)}</span>
           <span class="char-class">${clsPT(c.cls)}</span>
-          ${onCD ? `<span style="color:#e74c3c;font-size:10px;">⏳ ${cdLabel}</span>` : ''}
+          ${onCD ? `<span style="color:#e74c3c;font-size:10px;">⏳ ${cdLbl}</span>` : ''}
         </div>
         <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
           <span class="badge badge-clears">${c.clears} clears</span>
           <span class="badge ${d.cls}">${d.label}</span>
         </div>
+        <button class="btn btn-blue btn-sm" onclick="openEditModal('${c.id}')" title="Editar">✏</button>
+        <button class="btn btn-ghost btn-sm" onclick="window._resetCooldown('${c.id}')" title="Resetar cooldown">↺</button>
         <button class="btn btn-red btn-sm" onclick="window._removeChar('${c.id}')">✕</button>
       </div>`;
     }).join('');
   if(hint) hint.style.display = 'block';
 }
 
+// ── render groups ─────────────────────────────────────────────
 function renderGroups() {
   const wrap = document.getElementById('groups-list');
   if(!groups.length) { wrap.innerHTML='<div class="empty-state">Nenhum grupo ainda. Clique em "Novo Grupo" para começar.</div>'; return; }
@@ -467,7 +495,7 @@ function renderGroups() {
 
   wrap.innerHTML = groups.map(g => {
     const members = (g.members||[]).map(mid => characters.find(c=>c.id===mid)).filter(Boolean);
-    const membersHtml = `<div class="members-area${!members.length ? ' is-empty' : ''}"
+    const membersHtml = `<div class="members-area${!members.length?' is-empty':''}"
         data-group-id="${g.id}"
         ondragover="window._onGroupDragOver(event)"
         ondragleave="window._onGroupDragLeave(event)"
@@ -475,7 +503,7 @@ function renderGroups() {
       members.map(c => {
         const d = getDiff(c.clears);
         return `<span class="member-pill">
-          ${clsIcon(c.cls, 16)}
+          ${clsIcon(c.cls,16)}
           <span style="color:${clsMeta(c.cls).color};font-weight:600;">${esc(c.name)}</span>
           <span class="badge ${d.cls}" style="font-size:10px;padding:2px 6px;">${d.label}</span>
           <span class="badge badge-clears" style="font-size:10px;padding:2px 6px;">${c.clears}</span>
@@ -484,10 +512,8 @@ function renderGroups() {
       }).join('')
     }</div>`;
 
-    const cooldownOptGroup = onCooldown.length
-      ? `<optgroup label="⏳ Em Cooldown">
-          ${onCooldown.map(c=>`<option value="" disabled>${esc(c.name)} — ${fmtCooldown(c)}</option>`).join('')}
-        </optgroup>`
+    const cdOptGroup = onCooldown.length
+      ? `<optgroup label="⏳ Em Cooldown">${onCooldown.map(c=>`<option value="" disabled>${esc(c.name)} — ${fmtCooldown(c)}</option>`).join('')}</optgroup>`
       : '';
 
     const addRow = !unassigned.length
@@ -495,7 +521,7 @@ function renderGroups() {
       : `<select id="sel-${g.id}">
           <option value="">Adicionar personagem...</option>
           ${available.map(c=>`<option value="${c.id}">${esc(c.name)} — ${clsPT(c.cls)}</option>`).join('')}
-          ${cooldownOptGroup}
+          ${cdOptGroup}
         </select>
         <button class="btn btn-gold btn-sm" onclick="window._doAddToGroup('${g.id}')">＋ Adicionar</button>`;
 
@@ -517,34 +543,40 @@ function renderGroups() {
   }).join('');
 }
 
+// ── render history ────────────────────────────────────────────
 function renderHistory() {
   const listEl   = document.getElementById('history-list');
   const totalsEl = document.getElementById('history-totals-bar');
-  if(!history.length) {
+  const filtered = activeDungeonId
+    ? history.filter(h => h.dungeon_id === activeDungeonId)
+    : history;
+
+  if(!filtered.length) {
     listEl.innerHTML = '<div class="empty-state">Nenhuma run registrada ainda.</div>';
     totalsEl.innerHTML = '';
     return;
   }
-  const totalPoder = history.reduce((s,h)=>s+(h.poder||0),0);
-  const totalGema  = history.reduce((s,h)=>s+(h.gema||0),0);
+  const totalPoder = filtered.reduce((s,h)=>s+(h.poder||0),0);
+  const totalGema  = filtered.reduce((s,h)=>s+(h.gema||0),0);
   totalsEl.innerHTML = `<div class="history-totals">
-    <div class="totals-item"><span class="totals-label">Total de runs</span><span class="totals-val">${history.length}</span></div>
+    <div class="totals-item"><span class="totals-label">Total de runs</span><span class="totals-val">${filtered.length}</span></div>
     <div class="totals-divider"></div>
     <div class="totals-item"><span class="totals-label">🔶 Total Poder Temporal</span><span class="totals-val">${totalPoder}</span></div>
     <div class="totals-divider"></div>
     <div class="totals-item"><span class="totals-label">💎 Total Gema Temporal</span><span class="totals-val">${totalGema}</span></div>
   </div>`;
 
-  listEl.innerHTML = history.map((h, idx) => {
-    const runNo = history.length - idx;
-    const poderBadge = h.poder > 0 ? `<span class="loot-badge loot-poder">🔶 ${h.poder} Poder Temporal</span>` : '';
-    const gemaBadge  = h.gema  > 0 ? `<span class="loot-badge loot-gema">💎 ${h.gema} Gema Temporal</span>` : '';
-    const noLoot = !h.poder && !h.gema ? `<span style="font-size:12px;color:var(--text3);">Nenhum loot registrado</span>` : '';
+  listEl.innerHTML = filtered.map((h, idx) => {
+    const runNo = filtered.length - idx;
+    const dngName = dungeons.find(d=>d.id===h.dungeon_id)?.name || '';
+    const poderBadge = h.poder>0 ? `<span class="loot-badge loot-poder">🔶 ${h.poder} Poder Temporal</span>` : '';
+    const gemaBadge  = h.gema>0  ? `<span class="loot-badge loot-gema">💎 ${h.gema} Gema Temporal</span>` : '';
+    const noLoot = !h.poder&&!h.gema ? `<span style="font-size:12px;color:var(--text3);">Nenhum loot registrado</span>` : '';
     const pills = (h.members||[]).map(m=>`<span class="history-member-pill">${esc(m.name)} <span style="color:var(--text3);">${clsPT(m.cls)}</span></span>`).join('');
     return `<div class="history-entry">
       <div class="history-entry-header">
         <div class="history-meta">
-          <span class="history-run-label">Run #${runNo} — ${esc(h.group_name || h.groupName)}</span>
+          <span class="history-run-label">Run #${runNo} — ${esc(h.group_name||'')}${dngName?` · ${esc(dngName)}`:''}</span>
           <span class="history-time">${fmtDate(h.timestamp)}</span>
         </div>
         <button class="btn btn-red btn-sm" onclick="window._deleteRun('${h.id}')">✕</button>
@@ -557,20 +589,20 @@ function renderHistory() {
 
 function render() { renderRoster(); renderGroups(); renderHistory(); }
 
-// ── busca de dados ────────────────────────────────────────────
+// ── fetch ─────────────────────────────────────────────────────
 async function fetchAll() {
-  const [charsRes, groupsRes, histRes] = await Promise.all([
+  const [charsRes, groupsRes, histRes, dngRes] = await Promise.all([
     db.from('characters').select('*'),
     db.from('groups').select('*').order('created_at', { ascending: true }),
-    db.from('history').select('*').order('timestamp', { ascending: false })
+    db.from('history').select('*').order('timestamp', { ascending: false }),
+    db.from('dungeons').select('*').order('created_at', { ascending: true }),
   ]);
-  if(charsRes.error || groupsRes.error || histRes.error) {
-    setSyncStatus('error');
-    return false;
-  }
+  if(charsRes.error||groupsRes.error||histRes.error||dngRes.error) { setSyncStatus('error'); return false; }
   characters = charsRes.data;
-  groups     = groupsRes.data.map(g => ({ ...g, members: g.members || [] }));
-  history    = histRes.data.map(h => ({ ...h, members: h.members || [] }));
+  groups     = groupsRes.data.map(g=>({...g, members: g.members||[]}));
+  history    = histRes.data.map(h=>({...h, members: h.members||[]}));
+  dungeons   = dngRes.data;
+  if(!activeDungeonId && dungeons.length) activeDungeonId = dungeons[0].id;
   return true;
 }
 
@@ -580,22 +612,15 @@ window.addCharacter = async () => {
   const cls    = document.getElementById('inp-class').value;
   const clears = parseInt(document.getElementById('inp-clears').value)||0;
   if(!name||!cls){ toast('Preencha o nome e a classe!'); return; }
-
-  const tempId = 'temp-' + Date.now();
-  characters.push({ id: tempId, name, cls, clears });
+  const tempId = 'temp-'+Date.now();
+  characters.push({ id:tempId, name, cls, clears, cooldowns:{} });
   render();
-
   setSyncStatus('syncing');
-  const { data, error } = await db.from('characters').insert({ name, cls, clears }).select().single();
-  if(error){
-    characters = characters.filter(c => c.id !== tempId);
-    render();
-    setSyncStatus('error'); toast('Erro: ' + error.message); return;
-  }
-  characters = characters.filter(c => c.id !== tempId);
+  const { data, error } = await db.from('characters').insert({ name, cls, clears, cooldowns:{} }).select().single();
+  if(error){ characters=characters.filter(c=>c.id!==tempId); render(); setSyncStatus('error'); toast('Erro: '+error.message); return; }
+  characters=characters.filter(c=>c.id!==tempId);
   characters.push(data);
-  render();
-  setSyncStatus('online');
+  render(); setSyncStatus('online');
   document.getElementById('inp-name').value='';
   document.getElementById('inp-class').value='';
   document.getElementById('inp-clears').value='';
@@ -603,138 +628,117 @@ window.addCharacter = async () => {
 };
 
 window.addGroup = async () => {
-  const n = groups.length + 1;
-
-  const tempId = 'temp-' + Date.now();
-  groups.push({ id: tempId, name: `Grupo ${n}`, members: [], created_at: new Date().toISOString() });
+  const n = groups.length+1;
+  const tempId = 'temp-'+Date.now();
+  groups.push({ id:tempId, name:`Grupo ${n}`, members:[], created_at:new Date().toISOString() });
   render();
-
   setSyncStatus('syncing');
-  const { data, error } = await db.from('groups').insert({ name: `Grupo ${n}`, members: [] }).select().single();
-  if(error){
-    groups = groups.filter(g => g.id !== tempId);
-    render();
-    setSyncStatus('error'); toast('Erro: ' + error.message); return;
-  }
-  groups = groups.filter(g => g.id !== tempId);
-  groups.push({ ...data, members: data.members || [] });
-  render();
-  setSyncStatus('online');
+  const { data, error } = await db.from('groups').insert({ name:`Grupo ${n}`, members:[] }).select().single();
+  if(error){ groups=groups.filter(g=>g.id!==tempId); render(); setSyncStatus('error'); toast('Erro: '+error.message); return; }
+  groups=groups.filter(g=>g.id!==tempId);
+  groups.push({...data, members:data.members||[]});
+  render(); setSyncStatus('online');
 };
 
 window._removeChar = async id => {
-  const prevChars = [...characters];
-  const prevGroups = groups.map(g => ({...g, members: [...(g.members||[])]}));
-  characters = characters.filter(c => c.id !== id);
-  groups = groups.map(g => ({...g, members: (g.members||[]).filter(m => m !== id)}));
+  const prevChars  = [...characters];
+  const prevGroups = groups.map(g=>({...g,members:[...(g.members||[])]}));
+  characters = characters.filter(c=>c.id!==id);
+  groups = groups.map(g=>({...g,members:(g.members||[]).filter(m=>m!==id)}));
   render();
-
   setSyncStatus('syncing');
-  const affectedGroups = prevGroups.filter(g => (g.members||[]).includes(id));
-  for(const g of affectedGroups) {
-    await db.from('groups').update({ members: g.members.filter(m => m !== id) }).eq('id', g.id);
-  }
-  const { error } = await db.from('characters').delete().eq('id', id);
-  if(error){
-    characters = prevChars; groups = prevGroups; render();
-    setSyncStatus('error'); toast('Erro: ' + error.message);
-  } else { setSyncStatus('online'); }
+  for(const g of prevGroups.filter(g=>(g.members||[]).includes(id)))
+    await db.from('groups').update({ members:g.members.filter(m=>m!==id) }).eq('id',g.id);
+  const { error } = await db.from('characters').delete().eq('id',id);
+  if(error){ characters=prevChars; groups=prevGroups; render(); setSyncStatus('error'); toast('Erro: '+error.message); }
+  else setSyncStatus('online');
 };
 
 window._removeGroup = async id => {
   const prev = [...groups];
-  groups = groups.filter(g => g.id !== id);
+  groups = groups.filter(g=>g.id!==id);
   render();
   setSyncStatus('syncing');
-  const { error } = await db.from('groups').delete().eq('id', id);
-  if(error){ groups = prev; render(); setSyncStatus('error'); toast('Erro: ' + error.message); }
-  else { setSyncStatus('online'); }
+  const { error } = await db.from('groups').delete().eq('id',id);
+  if(error){ groups=prev; render(); setSyncStatus('error'); toast('Erro: '+error.message); }
+  else setSyncStatus('online');
 };
 
-window._removeFromGroup = async (gId, cId) => {
-  const g = groups.find(g => g.id === gId);
-  if(!g) return;
-  const prevMembers = [...(g.members||[])];
-  g.members = prevMembers.filter(m => m !== cId);
+window._removeFromGroup = async (gId,cId) => {
+  const g = groups.find(g=>g.id===gId); if(!g) return;
+  const prev = [...(g.members||[])];
+  g.members = prev.filter(m=>m!==cId);
   render();
   setSyncStatus('syncing');
-  const { error } = await db.from('groups').update({ members: g.members }).eq('id', gId);
-  if(error){ g.members = prevMembers; render(); setSyncStatus('error'); toast('Erro: ' + error.message); }
-  else { setSyncStatus('online'); }
+  const { error } = await db.from('groups').update({ members:g.members }).eq('id',gId);
+  if(error){ g.members=prev; render(); setSyncStatus('error'); toast('Erro: '+error.message); }
+  else setSyncStatus('online');
 };
 
 window._doAddToGroup = async gId => {
   const sel = document.getElementById(`sel-${gId}`);
   if(!sel||!sel.value) return;
-  const g = groups.find(g => g.id === gId);
-  if(!g) return;
-  const char = characters.find(c => c.id === sel.value);
-  if(char && isOnCooldown(char)) { toast(`⏳ ${char.name} está em cooldown! ${fmtCooldown(char)}`); return; }
+  const g = groups.find(g=>g.id===gId); if(!g) return;
+  const char = characters.find(c=>c.id===sel.value);
+  if(char&&isOnCooldown(char)){ toast(`⏳ ${char.name} está em cooldown! ${fmtCooldown(char)}`); return; }
   const members = [...(g.members||[])];
   if(members.includes(sel.value)) return;
   members.push(sel.value);
   g.members = members;
   render();
   setSyncStatus('syncing');
-  const { error } = await db.from('groups').update({ members }).eq('id', gId);
-  if(error){ g.members = members.filter(m => m !== sel.value); render(); setSyncStatus('error'); toast('Erro: ' + error.message); }
-  else { setSyncStatus('online'); }
+  const { error } = await db.from('groups').update({ members }).eq('id',gId);
+  if(error){ g.members=members.filter(m=>m!==sel.value); render(); setSyncStatus('error'); toast('Erro: '+error.message); }
+  else setSyncStatus('online');
 };
 
 window._instanceCleared = async gId => {
-  const g = groups.find(g => g.id === gId);
-  if(!g||!(g.members||[]).length){ toast('Nenhum personagem no grupo!'); return; }
+  const g = groups.find(g=>g.id===gId);
+  if(!g||(g.members||[]).length===0){ toast('Nenhum personagem no grupo!'); return; }
+  const dng = activeDungeon();
+  if(!dng){ toast('Selecione uma dungeon primeiro!'); return; }
   const poder = parseInt(document.getElementById(`poder-${gId}`)?.value)||0;
   const gema  = parseInt(document.getElementById(`gema-${gId}`)?.value)||0;
-  const memberSnapshot = (g.members||[]).map(mid => {
-    const c = characters.find(c => c.id === mid);
-    return c ? { id: c.id, name: c.name, cls: c.cls } : null;
-  }).filter(Boolean);
-
+  const memberSnapshot = (g.members||[]).map(mid=>{ const c=characters.find(c=>c.id===mid); return c?{id:c.id,name:c.name,cls:c.cls}:null; }).filter(Boolean);
   const prevMembersIds = [...(g.members||[])];
   const gameDayDate = gameDay();
   const todayISO = `${gameDayDate.getFullYear()}-${String(gameDayDate.getMonth()+1).padStart(2,'0')}-${String(gameDayDate.getDate()).padStart(2,'0')}`;
+
+  // atualiza cooldowns por dungeon no estado local
   (g.members||[]).forEach(mid => {
-    const c = characters.find(c => c.id === mid);
-    if(c){ c.clears += 1; c.last_cleared_at = todayISO; }
+    const c = characters.find(c=>c.id===mid);
+    if(c){
+      c.clears += 1;
+      c.cooldowns = { ...(c.cooldowns||{}), [dng.id]: todayISO };
+    }
   });
   g.members = [];
-  const newEntry = { id: 'temp-' + Date.now(), group_name: g.name, timestamp: Date.now(), members: memberSnapshot, poder, gema };
+  const newEntry = { id:'temp-'+Date.now(), group_name:g.name, dungeon_id:dng.id, timestamp:Date.now(), members:memberSnapshot, poder, gema };
   history.unshift(newEntry);
   render();
-
   setSyncStatus('syncing');
 
   for(const mid of prevMembersIds) {
-    const c = characters.find(c => c.id === mid);
-    if(c) await db.from('characters').update({ clears: c.clears, last_cleared_at: todayISO }).eq('id', mid);
+    const c = characters.find(c=>c.id===mid);
+    if(c) await db.from('characters').update({ clears:c.clears, cooldowns:c.cooldowns }).eq('id',mid);
   }
-  await db.from('groups').update({ members: [] }).eq('id', gId);
-
-  const { data, error } = await db.from('history').insert({
-    group_name: g.name,
-    timestamp: Date.now(),
-    members: memberSnapshot,
-    poder,
-    gema
-  }).select().single();
-
-  history = history.filter(h => h.id !== newEntry.id);
-  if(error){ setSyncStatus('error'); toast('Erro: ' + error.message); return; }
-  history.unshift({ ...data, members: data.members || [] });
-  render();
-  setSyncStatus('online');
+  await db.from('groups').update({ members:[] }).eq('id',gId);
+  const { data, error } = await db.from('history').insert({ group_name:g.name, dungeon_id:dng.id, timestamp:Date.now(), members:memberSnapshot, poder, gema }).select().single();
+  history = history.filter(h=>h.id!==newEntry.id);
+  if(error){ setSyncStatus('error'); toast('Erro: '+error.message); return; }
+  history.unshift({...data, members:data.members||[]});
+  render(); setSyncStatus('online');
   toast('Instância concluída! Run registrada.');
 };
 
 window._deleteRun = async id => {
   const prev = [...history];
-  history = history.filter(h => h.id !== id);
+  history = history.filter(h=>h.id!==id);
   render();
   setSyncStatus('syncing');
-  const { error } = await db.from('history').delete().eq('id', id);
-  if(error){ history = prev; render(); setSyncStatus('error'); toast('Erro: ' + error.message); }
-  else { setSyncStatus('online'); }
+  const { error } = await db.from('history').delete().eq('id',id);
+  if(error){ history=prev; render(); setSyncStatus('error'); toast('Erro: '+error.message); }
+  else setSyncStatus('online');
 };
 
 window.clearHistory = async () => {
@@ -744,76 +748,106 @@ window.clearHistory = async () => {
   history = [];
   render();
   setSyncStatus('syncing');
-  const { error } = await db.from('history').delete().neq('id', 0);
-  if(error){ history = prev; render(); setSyncStatus('error'); toast('Erro: ' + error.message); }
+  const { error } = await db.from('history').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  if(error){ history=prev; render(); setSyncStatus('error'); toast('Erro: '+error.message); }
   else { setSyncStatus('online'); toast('Histórico apagado.'); }
 };
 
-// ── handlers de drag & drop ───────────────────────────────────
+// ── editar personagem ─────────────────────────────────────────
+window.openEditModal = id => {
+  const c = characters.find(c=>c.id===id); if(!c) return;
+  editingCharId = id;
+  document.getElementById('edit-name').value  = c.name;
+  document.getElementById('edit-class').value = c.cls;
+  document.getElementById('edit-modal').style.display = 'flex';
+};
+window.closeEditModal = () => {
+  editingCharId = null;
+  document.getElementById('edit-modal').style.display = 'none';
+};
+window.saveEdit = async () => {
+  const c = characters.find(c=>c.id===editingCharId); if(!c) return;
+  const name = document.getElementById('edit-name').value.trim();
+  const cls  = document.getElementById('edit-class').value;
+  if(!name||!cls){ toast('Preencha todos os campos!'); return; }
+  const oldName=c.name, oldCls=c.cls;
+  c.name=name; c.cls=cls;
+  closeEditModal(); render();
+  setSyncStatus('syncing');
+  const { error } = await db.from('characters').update({ name, cls }).eq('id',editingCharId||c.id);
+  if(error){ c.name=oldName; c.cls=oldCls; render(); setSyncStatus('error'); toast('Erro: '+error.message); }
+  else { setSyncStatus('online'); toast(`${name} atualizado!`); }
+};
+
+// ── resetar cooldown ──────────────────────────────────────────
+window._resetCooldown = async id => {
+  const c = characters.find(c=>c.id===id); if(!c) return;
+  const dng = activeDungeon();
+  if(!confirm(`Resetar cooldown de ${c.name}${dng?` para ${dng.name}`:''}?`)) return;
+  const oldCooldowns = {...(c.cooldowns||{})};
+  const oldLca = c.last_cleared_at;
+  if(dng) {
+    c.cooldowns = {...(c.cooldowns||{}), [dng.id]: null};
+    delete c.cooldowns[dng.id];
+  } else {
+    c.last_cleared_at = null;
+  }
+  render();
+  setSyncStatus('syncing');
+  const update = dng ? { cooldowns: c.cooldowns } : { last_cleared_at: null };
+  const { error } = await db.from('characters').update(update).eq('id',id);
+  if(error){ c.cooldowns=oldCooldowns; c.last_cleared_at=oldLca; render(); setSyncStatus('error'); toast('Erro: '+error.message); }
+  else { setSyncStatus('online'); toast(`Cooldown de ${c.name} resetado!`); }
+};
+
+// ── drag & drop ───────────────────────────────────────────────
 window._onRosterDragStart = (e, charId) => {
   dragCharId = charId;
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/plain', charId);
   setTimeout(() => e.target.closest('.roster-item')?.classList.add('dragging'), 0);
 };
-
 window._onRosterDragEnd = (e) => {
   e.target.closest('.roster-item')?.classList.remove('dragging');
   dragCharId = null;
-  document.querySelectorAll('.members-area.drag-over').forEach(el => el.classList.remove('drag-over'));
+  document.querySelectorAll('.members-area.drag-over').forEach(el=>el.classList.remove('drag-over'));
 };
-
-window._onGroupDragOver = (e) => {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  e.currentTarget.classList.add('drag-over');
-};
-
-window._onGroupDragLeave = (e) => {
-  if(!e.currentTarget.contains(e.relatedTarget)) {
-    e.currentTarget.classList.remove('drag-over');
-  }
-};
-
+window._onGroupDragOver = (e) => { e.preventDefault(); e.dataTransfer.dropEffect='move'; e.currentTarget.classList.add('drag-over'); };
+window._onGroupDragLeave = (e) => { if(!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('drag-over'); };
 window._onGroupDrop = async (e, gId) => {
   e.preventDefault();
   e.currentTarget.classList.remove('drag-over');
-  const charId = e.dataTransfer.getData('text/plain') || dragCharId;
+  const charId = e.dataTransfer.getData('text/plain')||dragCharId;
   if(!charId) return;
-
-  const g = groups.find(g => g.id === gId);
-  if(!g) return;
+  const g = groups.find(g=>g.id===gId); if(!g) return;
   const members = [...(g.members||[])];
-  if(members.includes(charId)) { toast('Personagem já está neste grupo!'); return; }
-
-  const char = characters.find(c => c.id === charId);
-  if(char && isOnCooldown(char)) { toast(`⏳ ${char.name} está em cooldown! ${fmtCooldown(char)}`); return; }
-
+  if(members.includes(charId)){ toast('Personagem já está neste grupo!'); return; }
+  const char = characters.find(c=>c.id===charId);
+  if(char&&isOnCooldown(char)){ toast(`⏳ ${char.name} está em cooldown! ${fmtCooldown(char)}`); return; }
   members.push(charId);
   g.members = members;
   render();
-
   setSyncStatus('syncing');
-  const { error } = await db.from('groups').update({ members }).eq('id', gId);
-  if(error){ setSyncStatus('error'); toast('Erro: ' + error.message); }
+  const { error } = await db.from('groups').update({ members }).eq('id',gId);
+  if(error){ setSyncStatus('error'); toast('Erro: '+error.message); }
   else { setSyncStatus('online'); toast('Personagem adicionado ao grupo!'); }
 };
 
-// ── listeners em tempo real ───────────────────────────────────
+// ── realtime ──────────────────────────────────────────────────
 function setupRealtimeListeners() {
   const reload = async () => {
     setSyncStatus('syncing');
     const ok = await fetchAll();
-    if(ok){ render(); setSyncStatus('online'); }
+    if(ok){ renderDungeonBar(); render(); setSyncStatus('online'); }
   };
-
   db.channel('dungeon-tracker')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'characters' }, reload)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'groups' },     reload)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'history' },    reload)
+    .on('postgres_changes',{event:'*',schema:'public',table:'characters'},reload)
+    .on('postgres_changes',{event:'*',schema:'public',table:'groups'},    reload)
+    .on('postgres_changes',{event:'*',schema:'public',table:'history'},   reload)
+    .on('postgres_changes',{event:'*',schema:'public',table:'dungeons'},  reload)
     .subscribe(status => {
-      if(status === 'SUBSCRIBED') setSyncStatus('online');
-      if(status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setSyncStatus('error');
+      if(status==='SUBSCRIBED') setSyncStatus('online');
+      if(status==='CHANNEL_ERROR'||status==='TIMED_OUT') setSyncStatus('error');
     });
 }
 
@@ -823,65 +857,38 @@ window.doLogin = async () => {
   const password = document.getElementById('login-password').value;
   const errEl    = document.getElementById('login-error');
   const btn      = document.getElementById('login-btn');
-  errEl.style.display = 'none';
-  btn.disabled = true; btn.textContent = 'Entrando...';
-
+  errEl.style.display='none'; btn.disabled=true; btn.textContent='Entrando...';
   const { error } = await db.auth.signInWithPassword({ email, password });
-  if(error) {
-    errEl.textContent = 'Usuário ou senha inválidos.';
-    errEl.style.display = 'block';
-    btn.disabled = false; btn.textContent = 'Entrar';
-    return;
-  }
-  // sucesso — a mudança de sessão vai disparar onAuthStateChange
+  if(error){ errEl.textContent='Usuário ou senha inválidos.'; errEl.style.display='block'; btn.disabled=false; btn.textContent='Entrar'; return; }
 };
+window.doLogout = async () => { await db.auth.signOut(); };
 
-window.doLogout = async () => {
-  await db.auth.signOut();
-};
-
-// enter no campo de senha faz login
 document.addEventListener('DOMContentLoaded', () => {
-  const pwEl = document.getElementById('login-password');
-  if(pwEl) pwEl.addEventListener('keydown', e => { if(e.key === 'Enter') doLogin(); });
-  const emEl = document.getElementById('login-email');
-  if(emEl) emEl.addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('login-password').focus(); });
+  const pw = document.getElementById('login-password');
+  const em = document.getElementById('login-email');
+  if(pw) pw.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+  if(em) em.addEventListener('keydown', e=>{ if(e.key==='Enter') pw.focus(); });
 });
 
-// ── inicialização ─────────────────────────────────────────────
+// ── boot ──────────────────────────────────────────────────────
 async function bootApp() {
   const ok = await fetchAll();
-  if(!ok) {
-    document.querySelector('#loading-screen p').textContent = 'Falha na conexão. Verifique as configurações do Supabase.';
-    setSyncStatus('error');
-    return;
-  }
-  document.getElementById('loading-screen').style.display = 'none';
-  document.getElementById('main-app').style.display = 'block';
+  if(!ok){ document.querySelector('#loading-screen p').textContent='Falha na conexão.'; setSyncStatus('error'); return; }
+  document.getElementById('loading-screen').style.display='none';
+  document.getElementById('main-app').style.display='block';
+  renderDungeonBar();
   render();
   setSyncStatus('online');
   setupRealtimeListeners();
 }
 
 db.auth.onAuthStateChange((event, session) => {
-  const loginScreen   = document.getElementById('login-screen');
-  const loadingScreen = document.getElementById('loading-screen');
-  const mainApp       = document.getElementById('main-app');
-
-  if(session) {
-    // logado
-    loginScreen.style.display = 'none';
-    loadingScreen.style.display = 'flex';
-    mainApp.style.display = 'none';
-    bootApp();
-  } else {
-    // deslogado
-    loginScreen.style.display = 'flex';
-    loadingScreen.style.display = 'none';
-    mainApp.style.display = 'none';
-  }
+  const login   = document.getElementById('login-screen');
+  const loading = document.getElementById('loading-screen');
+  const app     = document.getElementById('main-app');
+  if(session){ login.style.display='none'; loading.style.display='flex'; app.style.display='none'; bootApp(); }
+  else { login.style.display='flex'; loading.style.display='none'; app.style.display='none'; }
 });
-
 </script>
 </body>
 </html>
