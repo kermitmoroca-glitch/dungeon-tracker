@@ -87,7 +87,11 @@
   .btn-sm { height: 30px; padding: 0 10px; font-size: 12px; }
   .empty-state { color: var(--text3); font-size: 13px; text-align: center; padding: 1.5rem 0; }
   /* ── roster card overhaul ── */
-  .roster-card { background: var(--bg2); border: 1px solid rgba(201,168,76,0.15); border-radius: var(--radius-lg); padding: 0.5rem; }
+  .roster-card { background: var(--bg2); border: 1px solid rgba(201,168,76,0.15); border-radius: var(--radius-lg); padding: 0.5rem; max-height: 520px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(201,168,76,0.3) transparent; }
+  .roster-card::-webkit-scrollbar { width: 5px; }
+  .roster-card::-webkit-scrollbar-track { background: transparent; }
+  .roster-card::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); border-radius: 10px; }
+  .roster-card::-webkit-scrollbar-thumb:hover { background: rgba(201,168,76,0.5); }
   .roster-char-card { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--border); transition: background 0.15s; }
   .roster-char-card:last-child { border-bottom: none; }
   .roster-char-card:hover { background: rgba(255,255,255,0.02); border-radius: var(--radius); }
@@ -904,9 +908,8 @@ window._onGroupDrop = async (e, gId) => {
 // ── realtime ──────────────────────────────────────────────────
 function setupRealtimeListeners() {
   const reload = async () => {
-    setSyncStatus('syncing');
     const ok = await fetchAll();
-    if(ok){ renderDungeonBar(); render(); setSyncStatus('online'); }
+    if(ok){ renderDungeonBar(); render(); }
   };
   db.channel('dungeon-tracker')
     .on('postgres_changes',{event:'*',schema:'public',table:'characters'},reload)
